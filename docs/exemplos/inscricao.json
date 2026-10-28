@@ -1,0 +1,11 @@
+
+{
+  "id": 101,
+  "evento_id": 1,
+  "participante": {
+    "nome": "Maria Silva",
+    "email": "maria@exemplo.com"
+  },
+  "status": "confirmada",
+  "criada_em": "2026-11-01T14:30:00-03:00"
+}
