@@ -1,0 +1,12 @@
+
+{
+  "id": 1,
+  "titulo": "Oficina de Python",
+  "descricao": "Introdução à programação com Python",
+  "palestrante": "Professor convidado",
+  "local": "Laboratório 01",
+  "data_inicio": "2026-11-10T19:00:00-03:00",
+  "data_fim": "2026-11-10T21:00:00-03:00",
+  "capacidade": 30,
+  "vagas_disponiveis": 30
+}
