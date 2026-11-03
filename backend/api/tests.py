@@ -19,6 +19,17 @@ class HealthEndpointTests(TestCase):
         response = self.client.post(reverse("health"))
 
         self.assertEqual(response.status_code, 405)
+    def test_health_permite_frontend_local(self):
+        response = self.client.get(
+            reverse("health"),
+            HTTP_ORIGIN="http://localhost:5173",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"],
+            "http://localhost:5173",
+        )
 
 
 class EventosEndpointTests(TestCase):

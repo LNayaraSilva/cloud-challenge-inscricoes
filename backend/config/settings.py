@@ -2,9 +2,11 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY",
@@ -19,6 +21,20 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    origem.strip()
+    for origem in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        (
+            "http://localhost:3000,"
+            "http://127.0.0.1:3000,"
+            "http://localhost:5173,"
+            "http://127.0.0.1:5173"
+        ),
+    ).split(",")
+    if origem.strip()
+]
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -27,11 +43,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "api",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
