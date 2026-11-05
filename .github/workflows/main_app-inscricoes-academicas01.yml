@@ -1,5 +1,4 @@
-
-name: Build and deploy Django to Azure - app-inscricoes-academicas01
+name: Deploy Django e frontend no Azure - app-inscricoes-academicas01
 
 on:
   push:
@@ -14,20 +13,32 @@ jobs:
       contents: read
 
     steps:
-      - name: Download source code
+      - name: Baixar projeto
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      - name: Check backend dependencies
+      - name: Instalar dependencias do backend
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Upload Django backend for deployment
+      - name: Copiar frontend para o Django
+        run: |
+          mkdir -p backend/templates backend/static/frontend
+          cp frontend/index.html backend/templates/index.html
+          cp frontend/style.css backend/static/frontend/style.css
+          cp frontend/script.js backend/static/frontend/script.js
+          sed -i 's|href="style.css"|href="/static/frontend/style.css"|g' backend/templates/index.html
+          sed -i 's|src="script.js"|src="/static/frontend/script.js"|g' backend/templates/index.html
+
+      - name: Coletar arquivos estaticos
+        run: python backend/manage.py collectstatic --noinput
+
+      - name: Criar artefato de implantacao
         uses: actions/upload-artifact@v4
         with:
           name: python-app
@@ -42,21 +53,20 @@ jobs:
       contents: read
 
     steps:
-      - name: Download backend artifact
+      - name: Baixar artefato do build
         uses: actions/download-artifact@v4
         with:
           name: python-app
           path: .
 
-      - name: Login to Azure
+      - name: Autenticar na Azure com identidade federada
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DCBF95BBAC6243A19846F51A726803E6 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_39F9044C7B1D4EBDB00D5DADC4B57B1A }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2268C4AB304345AFA6C14B8F8460A25F }}
 
-      - name: Deploy Django backend to Azure App Service
-        id: deploy-to-webapp
+      - name: Publicar no App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: app-inscricoes-academicas01
