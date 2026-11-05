@@ -1,140 +1,174 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111b46">
-  <meta name="description" content="Conheça os eventos, oficinas e palestras da Semana Acadêmica e faça sua inscrição quando as vagas estiverem disponíveis.">
-  <title>Semana Acadêmica 2026 | Cloud Challenge</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cloud Challenge | Semana Acadêmica</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a class="skip-link" href="#eventos">Pular para os eventos</a>
 
-  <header class="cabecalho" id="inicio">
-    <div class="container barra-navegacao">
-      <a class="marca" href="#inicio" aria-label="Semana Acadêmica, início">
-        <span class="marca-icone" aria-hidden="true">✦</span>
-        <span class="marca-texto">SEMANA <strong>ACADÊMICA</strong><small>Cloud Challenge · 2026</small></span>
-      </a>
-      <nav class="nav-links" aria-label="Navegação principal">
-        <a href="#inicio">Início</a>
-        <a href="#eventos">Programação</a>
-        <a href="#inscricao">Inscreva-se</a>
-        <a href="#sobre">Sobre</a>
-      </nav>
-      <a class="nav-cta" href="#eventos">Ver programação <span aria-hidden="true">↗</span></a>
-    </div>
-  </header>
+    <!-- Menu de navegação -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="#inicio">
+            </a>
 
-  <section class="hero" aria-labelledby="titulo-principal">
-    <div class="container hero-conteudo">
-      <div class="hero-esquerda">
-        <div class="hero-etiqueta"><span class="ponto-ao-vivo"></span> FACULDADE SENAC · 2026</div>
-        <h1 id="titulo-principal">Conhecimento que <span>abre caminhos.</span></h1>
-        <p class="hero-resumo">Três dias de ideias, conexões e novas experiências. Explore palestras, oficinas e atividades que fazem a diferença na sua trajetória.</p>
-        <div class="hero-acoes">
-          <a class="botao botao-primario" href="#eventos">Explorar eventos <span aria-hidden="true">→</span></a>
-          <a class="botao botao-secundario" href="#sobre">Conheça o projeto</a>
-        </div>
-        <div class="hero-informacoes">
-          <span><span aria-hidden="true">📅</span> 10 a 12 de novembro de 2026</span>
-          <span><span aria-hidden="true">📍</span> Faculdade Senac</span>
-        </div>
-      </div>
-      <div class="hero-direita" aria-hidden="true">
-        <div class="circulo-decorativo"></div>
-        <div class="cartao-destaque">
-          <span class="destaque-icone">🎓</span>
-          <span class="destaque-categoria">VEM AÍ</span>
-          <strong>Semana<br>Acadêmica</strong>
-          <span class="destaque-linha"></span>
-          <span class="destaque-data">10 — 12 NOV<br>2026</span>
-        </div>
-        <div class="selo-flutuante">✦ Aprenda · Conecte · Evolua</div>
-      </div>
-    </div>
-  </section>
-
-  <main>
-    <section class="estatisticas container" aria-label="Resumo da programação">
-      <div class="estatistica"><span class="estatistica-icone" aria-hidden="true">▦</span><div><strong id="numero-eventos">—</strong><span>Eventos na programação</span></div></div>
-      <div class="estatistica"><span class="estatistica-icone" aria-hidden="true">✓</span><div><strong id="numero-disponiveis">—</strong><span>Com inscrições abertas</span></div></div>
-      <div class="estatistica"><span class="estatistica-icone" aria-hidden="true">⌁</span><div><strong>3 dias</strong><span>De conhecimento e conexões</span></div></div>
-    </section>
-
-    <section class="secao-eventos" id="eventos" aria-labelledby="titulo-eventos">
-      <div class="container">
-        <div class="secao-cabecalho">
-          <div>
-            <span class="sobretitulo">PROGRAMAÇÃO</span>
-            <h2 id="titulo-eventos">Encontre seu próximo <span>grande aprendizado.</span></h2>
-            <p>Pesquise, confira os detalhes e selecione o evento do seu interesse.</p>
-          </div>
-        </div>
-
-        <div id="aviso-api" class="aviso-api" role="status" aria-live="polite" hidden></div>
-
-        <div class="barra-filtros">
-          <label class="campo-pesquisa" for="buscar-evento">
-            <span aria-hidden="true">⌕</span>
-            <input type="search" id="buscar-evento" placeholder="Buscar evento, local ou palestrante..." autocomplete="off">
-          </label>
-          <label class="campo-filtro" for="filtro-eventos">
-            <span class="rotulo-filtro">Mostrar</span>
-            <select id="filtro-eventos">
-              <option value="todos">Todos os eventos</option>
-              <option value="disponiveis">Inscrições abertas</option>
-              <option value="indisponiveis">Lotados ou encerrados</option>
-            </select>
-          </label>
-          <button class="botao-atualizar" id="recarregar-eventos" type="button" title="Recarregar eventos">↻ <span>Atualizar</span></button>
-        </div>
-
-        <div class="programacao-layout">
-          <div class="lista-coluna">
-            <div class="subcabecalho-lista"><h3>Eventos disponíveis</h3><span id="contador-exibidos" aria-live="polite">Carregando...</span></div>
-            <div id="lista-eventos" class="eventos-grid" aria-live="polite" aria-busy="true">
-              <div class="esqueleto-card"></div><div class="esqueleto-card"></div><div class="esqueleto-card"></div>
+            <div class="nav-links">
+                <a href="#inicio">Início</a>
+                <a href="#eventos">Eventos</a>
+                <a href="#inscricao">Inscrições</a>
+                <a href="#sobre">Sobre</a>
             </div>
-          </div>
-
-          <aside class="painel-inscricao" id="inscricao" aria-labelledby="titulo-inscricao">
-            <div class="painel-cabecalho">
-              <div class="painel-badge">INSCRIÇÕES</div>
-              <h2 id="titulo-inscricao">Garanta sua participação</h2>
-              <p>Escolha um evento e preencha os dados abaixo.</p>
-            </div>
-            <div class="painel-conteudo">
-              <div class="evento-escolhido">
-                <span>EVENTO SELECIONADO</span>
-                <strong id="evento-selecionado">Nenhum evento selecionado</strong>
-                <small id="evento-selecionado-data">Selecione um card da programação</small>
-              </div>
-              <form id="form-inscricao" novalidate>
-                <label for="nome">Nome completo <span aria-hidden="true">*</span></label>
-                <input id="nome" name="nome" type="text" placeholder="Seu nome completo" autocomplete="name" minlength="3" maxlength="200" required>
-                <label for="email">E-mail <span aria-hidden="true">*</span></label>
-                <input id="email" name="email" type="email" placeholder="voce@exemplo.com" autocomplete="email" maxlength="254" required>
-                <button id="btn-confirmar" class="botao-confirmar" type="submit" disabled>Selecione um evento <span aria-hidden="true">→</span></button>
-              </form>
-              <div id="mensagem-inscricao" class="mensagem-inscricao" role="status" aria-live="polite"></div>
-              <p class="aviso-privacidade">🔒 Seus dados serão enviados para inscrição somente quando o serviço estiver disponível.</p>
-            </div>
-          </aside>
         </div>
-      </div>
-    </section>
+    </nav>
 
-    <section id="sobre" class="secao-sobre" aria-labelledby="titulo-sobre">
-      <div class="container sobre-layout">
-        <div><span class="sobretitulo">SOBRE O PROJETO</span><h2 id="titulo-sobre">Tecnologia para conectar pessoas ao conhecimento.</h2></div>
-        <div><p>O Cloud Challenge é um projeto acadêmico para gerenciamento de eventos e inscrições da Semana Acadêmica da Faculdade Senac.</p><p>A aplicação utiliza HTML, CSS e JavaScript na interface, com API Django e banco de dados PostgreSQL planejado para os registros de inscrição.</p><div class="tecnologias"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Django</span><span>PostgreSQL</span></div></div>
-      </div>
-    </section>
-  </main>
+    <!-- Apresentação principal -->
+    <header class="hero" id="inicio">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <span class="hero-tag">Semana Acadêmica</span>
 
-  <footer class="rodape"><div class="container rodape-conteudo"><span>✦ <strong>Semana Acadêmica</strong> · Cloud Challenge</span><span>Projeto acadêmico · Faculdade Senac · 2026</span></div></footer>
+                <h1>
+                    Semana <span>Acadêmica</span>
+                </h1>
+
+                <p>
+                    Participe de palestras, oficinas e experiências
+                    práticas para ampliar seus conhecimentos.
+                </p>
+
+                <div class="hero-info">
+                    <span>📅 10 a 12 de Nov 2026</span>
+                    <span>📍 Faculdade Senac</span>
+                </div>
+
+                <a href="#eventos" class="btn-hero">
+                    Explorar eventos
+                </a>
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <div class="visual-circle">
+                    <span>🎓</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Listagem dos eventos -->
+        <section class="eventos-section" id="eventos">
+            <div class="section-header">
+                <div>
+                    <h2>Eventos disponíveis</h2>
+                    <p>
+                        Confira a programação e garanta sua participação.
+                    </p>
+                </div>
+
+                <div class="search-box">
+                    <input
+                        type="search"
+                        id="buscar-evento"
+                        placeholder="Buscar evento..."
+                        aria-label="Buscar evento"
+                    >
+                </div>
+            </div>
+
+            <div class="content-layout">
+
+                <div class="eventos-area">
+                    <div id="lista-eventos" class="eventos-grid">
+                        <p>Carregando eventos...</p>
+                    </div>
+                </div>
+
+                <!-- Formulário de inscrição -->
+                <aside class="inscricao-panel" id="inscricao">
+                    <div class="panel-header">
+                        <h2>Inscrição no evento</h2>
+                        <p>Preencha seus dados para participar.</p>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="evento-escolhido">
+                            <span>Evento selecionado</span>
+                            <strong id="evento-selecionado">
+                                Selecione um evento
+                            </strong>
+                        </div>
+
+                        <form id="form-inscricao">
+                            <label for="nome">
+                                Nome completo *
+                            </label>
+                            <input
+                                type="text"
+                                id="nome"
+                                name="nome"
+                                placeholder="Digite seu nome"
+                                autocomplete="name"
+                                required
+                            >
+
+                            <label for="email">
+                                E-mail *
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="Digite seu e-mail"
+                                autocomplete="email"
+                                required
+                            >
+
+                            <button
+                                type="submit"
+                                class="btn-inscricao"
+                                id="btn-confirmar"
+                                disabled
+                            >
+                                Confirmar inscrição
+                            </button>
+                        </form>
+
+                        <p id="mensagem-inscricao" role="status" aria-live="polite"></p>
+                    </div>
+                </aside>
+
+            </div>
+        </section>
+
+        <!-- Informações do projeto -->
+        <section class="sobre-section" id="sobre">
+            <h2>Sobre o projeto</h2>
+            <p>
+                O Cloud Challenge é um projeto acadêmico de
+                desenvolvimento de um sistema para gerenciamento
+                de eventos e inscrições da Semana Acadêmica.
+            </p>
+            <p>
+                Tecnologias: HTML, CSS, JavaScript,
+                Django e PostgreSQL.
+            </p>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Cloud Challenge | Faculdade Senac</p>
+            <p>Projeto acadêmico - Semana Acadêmica</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
