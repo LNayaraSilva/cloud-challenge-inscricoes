@@ -1,213 +1,192 @@
-
 /*
-  Cloud Challenge - Semana Acadêmica
-  Frontend em JavaScript
-  Dados simulados para integração futura com Django
-*/
+ * Semana Acadêmica: eventos e inscrições reais, carregados da API Django.
+ * A aplicação pública não consulta nomes/e-mails dos participantes.
+ */
 
-// Eventos fictícios
-const eventos = [
-    {
-        id: 1,
-        titulo: "Oficina de Python",
-        descricao: "Introdução à programação com Python.",
-        local: "Laboratório 01",
-        data_inicio: "2026-11-10T19:00:00-03:00",
-        capacidade: 30,
-        vagas_disponiveis: 30
-    },
-    {
-        id: 2,
-        titulo: "Introdução à Inteligência Artificial",
-        descricao: "Conheça os conceitos básicos de IA.",
-        local: "Auditório",
-        data_inicio: "2026-11-11T19:00:00-03:00",
-        capacidade: 40,
-        vagas_disponiveis: 15
-    },
-    {
-        id: 3,
-        titulo: "Segurança da Informação",
-        descricao: "Boas práticas de segurança digital.",
-        local: "Sala 05",
-        data_inicio: "2026-11-12T19:00:00-03:00",
-        capacidade: 25,
-        vagas_disponiveis: 0
-    }
-];
+const API_EVENTOS = '/api/eventos';
+const listaEventos = document.getElementById('lista-eventos');
+const campoBusca = document.getElementById('buscar-evento');
+const formulario = document.getElementById('form-inscricao');
+const nomeEvento = document.getElementById('evento-selecionado');
+const mensagem = document.getElementById('mensagem-inscricao');
+const botaoConfirmar = document.getElementById('btn-confirmar');
 
-const listaEventos = document.getElementById("lista-eventos");
-const campoBusca = document.getElementById("buscar-evento");
-const formulario = document.getElementById("form-inscricao");
-const nomeEvento = document.getElementById("evento-selecionado");
-const mensagem = document.getElementById("mensagem-inscricao");
-const botaoConfirmar = document.getElementById("btn-confirmar");
-
-// Inscrições simuladas nesta sessão da página
-const inscricoesSimuladas = new Set();
-
+let eventos = [];
 let eventoSelecionadoId = null;
+let enviandoInscricao = false;
 
-// Formatar data
 function formatarData(data) {
-    return new Date(data).toLocaleString("pt-BR", {
-        dateStyle: "short",
-        timeStyle: "short"
+    const valor = new Date(data);
+    if (Number.isNaN(valor.getTime())) return 'Data não informada';
+    return valor.toLocaleString('pt-BR', {
+        dateStyle: 'short', timeStyle: 'short'
     });
 }
 
-// Verificar se o evento já começou
 function eventoEncerrado(evento) {
-    return new Date(evento.data_inicio) <= new Date();
+    const dataInicio = new Date(evento.data_inicio);
+    return Number.isNaN(dataInicio.getTime()) || dataInicio <= new Date();
 }
 
-// Selecionar evento
-function selecionarEvento(id) {
-    const evento = eventos.find(function(item) {
-        return item.id === id;
-    });
+function exibirMensagem(texto, tipo = 'erro') {
+    mensagem.textContent = texto;
+    mensagem.className = tipo === 'sucesso' ? 'mensagem-sucesso' : 'mensagem-erro';
+}
 
-    if (!evento || eventoEncerrado(evento) ||
-        evento.vagas_disponiveis <= 0) {
-        return;
+function eventoDisponivel(evento) {
+    return Boolean(evento) && !eventoEncerrado(evento) &&
+        Number(evento.vagas_disponiveis) > 0;
+}
+
+function atualizarSelecao() {
+    const selecionado = eventos.find(item => Number(item.id) === Number(eventoSelecionadoId));
+    if (!eventoDisponivel(selecionado)) {
+        eventoSelecionadoId = null;
+        nomeEvento.textContent = 'Selecione um evento';
+    } else {
+        nomeEvento.textContent = selecionado.titulo;
     }
+    botaoConfirmar.disabled = enviandoInscricao || eventoSelecionadoId === null;
+}
+
+function selecionarEvento(id) {
+    const evento = eventos.find(item => Number(item.id) === Number(id));
+    if (!eventoDisponivel(evento) || enviandoInscricao) return;
 
     eventoSelecionadoId = evento.id;
-    nomeEvento.textContent = evento.titulo;
-    botaoConfirmar.disabled = false;
-    mensagem.textContent = "";
-
-    document.getElementById("inscricao").scrollIntoView({
-        behavior: "smooth",
-        block: "center"
+    mensagem.textContent = '';
+    atualizarSelecao();
+    document.getElementById('inscricao').scrollIntoView({
+        behavior: 'smooth', block: 'center'
     });
 }
 
-// Exibir eventos
-function mostrarEventos(filtro = "") {
-    listaEventos.innerHTML = "";
+function inserirTexto(elemento, classe, valor) {
+    const no = document.createElement('p');
+    if (classe) no.className = classe;
+    no.textContent = valor;
+    elemento.appendChild(no);
+}
 
-    const eventosFiltrados = eventos.filter(function(evento) {
-        return evento.titulo.toLowerCase().includes(
-            filtro.toLowerCase()
-        );
-    });
+function mostrarEventos(filtro = '') {
+    listaEventos.replaceChildren();
+    const busca = filtro.trim().toLocaleLowerCase('pt-BR');
+    const encontrados = eventos.filter(evento =>
+        String(evento.titulo || '').toLocaleLowerCase('pt-BR').includes(busca) ||
+        String(evento.palestrante || '').toLocaleLowerCase('pt-BR').includes(busca)
+    );
 
-    if (eventosFiltrados.length === 0) {
-        const aviso = document.createElement("p");
-        aviso.textContent = "Nenhum evento encontrado.";
-        listaEventos.appendChild(aviso);
+    if (encontrados.length === 0) {
+        inserirTexto(listaEventos, 'aviso-lista', busca
+            ? 'Nenhum evento encontrado para essa busca.'
+            : 'Ainda não há eventos cadastrados.');
         return;
     }
 
-    eventosFiltrados.forEach(function(evento) {
-        const card = document.createElement("div");
-        card.className = "card-evento";
-
-        const titulo = document.createElement("h3");
+    encontrados.forEach(evento => {
+        const card = document.createElement('article');
+        card.className = 'card-evento';
+        const titulo = document.createElement('h3');
         titulo.textContent = evento.titulo;
+        card.appendChild(titulo);
 
-        const descricao = document.createElement("p");
-        descricao.textContent = evento.descricao;
+        inserirTexto(card, '', evento.descricao);
+        inserirTexto(card, '', 'Palestrante: ' + evento.palestrante);
+        inserirTexto(card, '', 'Início: ' + formatarData(evento.data_inicio));
+        inserirTexto(card, '', 'Término: ' + formatarData(evento.data_fim));
+        inserirTexto(card, '', 'Local: ' + evento.local);
+        inserirTexto(card, '', 'Vagas disponíveis: ' + evento.vagas_disponiveis);
 
-        const data = document.createElement("p");
-        data.textContent = "Data: " + formatarData(evento.data_inicio);
-
-        const local = document.createElement("p");
-        local.textContent = "Local: " + evento.local;
-
-        const vagas = document.createElement("p");
-        vagas.textContent =
-            "Vagas disponíveis: " + evento.vagas_disponiveis;
-
-        const botao = document.createElement("button");
-        botao.className = "btn-inscricao";
-
+        const botao = document.createElement('button');
+        botao.className = 'btn-inscricao';
+        botao.type = 'button';
         if (eventoEncerrado(evento)) {
-            botao.textContent = "Inscrições encerradas";
+            botao.textContent = 'Inscrições encerradas';
             botao.disabled = true;
-        } else if (evento.vagas_disponiveis <= 0) {
-            botao.textContent = "Vagas esgotadas";
+        } else if (Number(evento.vagas_disponiveis) <= 0) {
+            botao.textContent = 'Vagas esgotadas';
             botao.disabled = true;
         } else {
-            botao.textContent = "Inscrever-se";
-
-            botao.addEventListener("click", function() {
-                selecionarEvento(evento.id);
-            });
+            botao.textContent = 'Inscrever-se';
+            botao.addEventListener('click', () => selecionarEvento(evento.id));
         }
-
-        card.appendChild(titulo);
-        card.appendChild(descricao);
-        card.appendChild(data);
-        card.appendChild(local);
-        card.appendChild(vagas);
         card.appendChild(botao);
-
         listaEventos.appendChild(card);
     });
 }
 
-// Pesquisa de eventos
-campoBusca.addEventListener("input", function() {
+async function carregarEventos() {
+    const resposta = await fetch(API_EVENTOS, {cache: 'no-store'});
+    if (!resposta.ok) {
+        throw new Error(`A API retornou erro HTTP ${resposta.status}.`);
+    }
+    const dados = await resposta.json();
+    if (!Array.isArray(dados)) {
+        throw new Error('Formato inesperado na resposta da API.');
+    }
+    eventos = dados;
     mostrarEventos(campoBusca.value);
-});
+    atualizarSelecao();
+}
 
-// Simular inscrição
-formulario.addEventListener("submit", function(event) {
+campoBusca.addEventListener('input', () => mostrarEventos(campoBusca.value));
+
+formulario.addEventListener('submit', async event => {
     event.preventDefault();
+    if (enviandoInscricao) return;
 
-    const nome = document.getElementById("nome").value.trim();
-    const email = document.getElementById("email").value.trim().toLowerCase();
+    const nome = document.getElementById('nome').value.trim();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const escolhido = eventos.find(item => Number(item.id) === Number(eventoSelecionadoId));
 
-    const eventoEscolhido = eventos.find(function(item) {
-        return item.id === eventoSelecionadoId;
-    });
-
-    if (!nome || !email || !eventoEscolhido) {
-        mensagem.textContent = "Preencha todos os campos.";
-        mensagem.style.color = "#dc2626";
+    if (!nome || !email || !escolhido) {
+        exibirMensagem('Informe nome, e-mail e selecione um evento.');
+        return;
+    }
+    if (!eventoDisponivel(escolhido)) {
+        exibirMensagem('Este evento não aceita novas inscrições.');
         return;
     }
 
-    if (eventoEncerrado(eventoEscolhido)) {
-        mensagem.textContent = "As inscrições estão encerradas.";
-        mensagem.style.color = "#dc2626";
-        return;
-    }
+    enviandoInscricao = true;
+    botaoConfirmar.disabled = true;
+    botaoConfirmar.textContent = 'Confirmando...';
+    formulario.setAttribute('aria-busy', 'true');
 
-    const chaveInscricao = eventoEscolhido.id + ":" + email;
+    try {
+        const resposta = await fetch(`${API_EVENTOS}/${encodeURIComponent(escolhido.id)}/inscricoes`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({participante: {nome, email}})
+        });
+        const dados = await resposta.json().catch(() => ({}));
+        if (!resposta.ok) {
+            throw new Error(dados.mensagem || `Erro ${resposta.status} ao confirmar inscrição.`);
+        }
 
-    if (inscricoesSimuladas.has(chaveInscricao)) {
-        mensagem.textContent = "Este e-mail já está inscrito neste evento.";
-        mensagem.style.color = "#dc2626";
-        return;
-    }
-
-    if (eventoEscolhido.vagas_disponiveis <= 0) {
-        mensagem.textContent = "Não existem vagas disponíveis.";
-        mensagem.style.color = "#dc2626";
-        return;
-    }
-
-    inscricoesSimuladas.add(chaveInscricao);
-    eventoEscolhido.vagas_disponiveis--;
-
-    mensagem.textContent =
-        "Inscrição simulada com sucesso para " + nome + "!";
-    mensagem.style.color = "#15803d";
-
-    formulario.reset();
-
-    // Atualizar os cartões mantendo a pesquisa atual
-    mostrarEventos(campoBusca.value);
-
-    if (eventoEscolhido.vagas_disponiveis === 0) {
+        formulario.reset();
         eventoSelecionadoId = null;
-        nomeEvento.textContent = "Selecione um evento";
-        botaoConfirmar.disabled = true;
+        exibirMensagem(`Inscrição de ${nome} confirmada com sucesso!`, 'sucesso');
+
+        try {
+            await carregarEventos();
+        } catch (erroAtualizacao) {
+            console.error('Inscrição salva, mas a listagem não atualizou:', erroAtualizacao);
+            // Nunca atribuir falha de inscrição a uma atualização da lista.
+        }
+    } catch (erro) {
+        exibirMensagem(erro.message || 'Não foi possível concluir a inscrição.');
+    } finally {
+        enviandoInscricao = false;
+        formulario.removeAttribute('aria-busy');
+        botaoConfirmar.textContent = 'Confirmar inscrição';
+        atualizarSelecao();
     }
 });
 
-// Inicializar a página
-mostrarEventos();
+carregarEventos().catch(erro => {
+    console.error('Falha ao carregar os eventos:', erro);
+    listaEventos.replaceChildren();
+    inserirTexto(listaEventos, 'aviso-lista',
+        'Não foi possível carregar os eventos. Verifique sua conexão e atualize a página.');
+});

@@ -1,3 +1,7 @@
+-- ATENÇÃO: ARQUIVO HISTÓRICO DE REFERÊNCIA, NÃO É UMA MIGRAÇÃO DJANGO.
+-- NÃO EXECUTAR ESTE SCRIPT EM PRODUÇÃO! CONTÉM DROP TABLE E APAGA DADOS.
+-- Em ambiente já implantado, use o Django: python manage.py migrate
+-- =========================================================
 -- =========================================================
 -- Sistema de Inscrições em Eventos
 -- Estrutura compatível com os modelos da aplicação Django
