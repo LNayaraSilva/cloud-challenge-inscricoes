@@ -463,3 +463,10 @@ footer p {
         gap: 15px;
     }
 }
+
+/* Mensagens de confirmação ou erros na inscrição */
+#mensagem-inscricao.mensagem-erro { color:#b91c1c; }
+#mensagem-inscricao.mensagem-sucesso { color:#15803d; }
+.aviso-lista { color:var(--cinza); padding:14px; }
+footer .link-organizacao { color:#dbeafe; text-decoration:underline; }
+footer .link-organizacao:hover { color:white; }

@@ -1,11 +1,13 @@
 import json
 from json import JSONDecodeError
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
@@ -13,6 +15,24 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from .models import Evento, Inscricao
 from .serializers import evento_para_dict, inscricao_para_dict
+
+
+@staff_member_required(login_url="/admin/login/")
+def pagina_organizacao(request):
+    """Painel com acesso restrito aos colaboradores da organização."""
+    return render(request, "organizacao.html")
+
+
+def acesso_organizacao_permitido(request):
+    return request.user.is_authenticated and request.user.is_staff
+
+
+def acesso_negado():
+    return resposta_erro(
+        "ACESSO_NEGADO",
+        "Acesso permitido apenas à equipe organizadora autenticada.",
+        403,
+    )
 
 
 def resposta_erro(codigo, mensagem, status, campos=None):
@@ -156,7 +176,6 @@ def health(request):
     return JsonResponse({"status": "ok"})
 
 
-@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def eventos(request):
     if request.method == "GET":
@@ -173,6 +192,9 @@ def eventos(request):
             [evento_para_dict(evento) for evento in lista],
             safe=False,
         )
+
+    if not acesso_organizacao_permitido(request):
+        return acesso_negado()
 
     dados, erro = ler_json(request)
 
@@ -238,6 +260,8 @@ def detalhe_evento(request, evento_id):
 @require_http_methods(["GET", "POST"])
 def inscricoes_evento(request, evento_id):
     if request.method == "GET":
+        if not acesso_organizacao_permitido(request):
+            return acesso_negado()
         if not Evento.objects.filter(pk=evento_id).exists():
             return resposta_erro(
                 "EVENTO_NAO_ENCONTRADO",
@@ -335,9 +359,11 @@ def inscricoes_evento(request, evento_id):
     )
 
 
-@csrf_exempt
 @require_http_methods(["DELETE"])
 def cancelar_inscricao(request, inscricao_id):
+    if not acesso_organizacao_permitido(request):
+        return acesso_negado()
+
     try:
         inscricao = Inscricao.objects.get(pk=inscricao_id)
     except Inscricao.DoesNotExist:

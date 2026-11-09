@@ -1,9 +1,9 @@
 # Contrato da API – Inscrições da Semana Acadêmica
 
 ## 1. Objetivo
-Documentar a proposta inicial de comunicação entre frontend, backend Flask e banco PostgreSQL.
+Documentar a proposta inicial de comunicação entre frontend, backend Django e banco PostgreSQL.
 
-**Status:** Proposta para validação pela equipe.
+**Status:** Contrato da API implementado, com acesso de organização restrito.
 
 ## 2. Padrões
 - Base da API: `/api`
@@ -17,12 +17,24 @@ Documentar a proposta inicial de comunicação entre frontend, backend Flask e b
 | Método | Endpoint | Descrição |
 |---|---|---|
 | GET | `/health` | Verificar se a aplicação está respondendo |
-| POST | `/api/eventos` | Cadastrar evento |
+| POST | `/api/eventos` | Cadastrar evento (organizador autenticado e CSRF) |
 | GET | `/api/eventos` | Listar eventos e vagas |
 | GET | `/api/eventos/{id}` | Consultar evento |
 | POST | `/api/eventos/{id}/inscricoes` | Inscrever participante |
-| GET | `/api/eventos/{id}/inscricoes` | Listar inscrições do evento |
-| DELETE | `/api/inscricoes/{id}` | Cancelar inscrição |
+| GET | `/api/eventos/{id}/inscricoes` | Listar inscrições do evento (organizador autenticado) |
+| DELETE | `/api/inscricoes/{id}` | Cancelar inscrição (organizador autenticado e CSRF) |
+
+### Acesso e proteção de dados
+
+- Público: `GET /health`, `GET /api/eventos`, `GET /api/eventos/{id}` e
+  `POST /api/eventos/{id}/inscricoes`.
+- Organização: `GET /api/eventos/{id}/inscricoes`, `POST /api/eventos` e
+  `DELETE /api/inscricoes/{id}` exigem conta Django autenticada com `is_staff`.
+- Alterações administrativas exigem token CSRF de uma sessão Django válida.
+- A lista de inscritos possui nomes e e-mails pessoais: **não exibir ou publicar
+  sem autenticação de um responsável autorizado**.
+- A inscrição pública permanece aberta sem autenticação; controles antiabuso
+  e confirmação de e-mail são melhorias de produção pendentes.
 
 ## 4. Cadastro de evento
 
@@ -112,4 +124,4 @@ Exemplo de erro:
 
 ## 11. Observações
 
-Este documento é uma proposta inicial e poderá ser ajustado após a validação da equipe. Os exemplos JSON são dados fictícios e não substituem a persistência em PostgreSQL. A implementação da API, autenticação, permissões e detalhes do cancelamento deverão ser definidos durante o desenvolvimento.
+Este documento é uma proposta inicial e poderá ser ajustado após a validação da equipe. Os exemplos JSON são dados fictícios e não substituem a persistência em PostgreSQL. A autenticação de organizadores foi implementada usando sessões Django. O endpoint público de inscrição não exige login, e a lista de inscritos é privada.

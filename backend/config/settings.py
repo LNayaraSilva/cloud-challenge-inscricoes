@@ -64,7 +64,9 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": ([BASE_DIR / "templates", BASE_DIR.parent / "frontend"]
+                 if (BASE_DIR.parent / "frontend").is_dir()
+                 else [BASE_DIR / "templates"]),
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -126,7 +128,15 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# No repositório local, usamos os arquivos do frontend diretamente.
+# No deploy, o workflow copia os arquivos para backend/static/frontend,
+# pois somente a pasta backend é enviada ao App Service.
+if (BASE_DIR / "static").is_dir():
+    STATICFILES_DIRS = [BASE_DIR / "static"]
+elif (BASE_DIR.parent / "frontend").is_dir():
+    STATICFILES_DIRS = [("frontend", BASE_DIR.parent / "frontend")]
+else:
+    STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {

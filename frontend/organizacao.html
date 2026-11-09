@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organização | Inscrições da Semana Acadêmica</title>
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="{% static 'frontend/organizacao.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-content nav-organizacao">
+            <div class="nav-links">
+                <a href="/">Voltar aos eventos</a>
+                <a href="/admin/">Administração</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="cabecalho-organizacao">
+        <div class="container">
+            <p class="subtitulo-organizacao">Acesso restrito à equipe</p>
+            <h1>Inscrições por evento</h1>
+            <p>Consulte participantes confirmados sem expor dados pessoais no site público.</p>
+        </div>
+    </header>
+
+    <main class="container conteudo-organizacao">
+        <section class="painel-organizacao" aria-labelledby="titulo-filtros">
+            <h2 id="titulo-filtros">Consultar inscrições</h2>
+            <div class="filtros-organizacao">
+                <div>
+                    <label for="selecionar-evento-org">Evento</label>
+                    <select id="selecionar-evento-org">
+                        <option value="">Carregando eventos...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="buscar-inscrito">Buscar participante</label>
+                    <input id="buscar-inscrito" type="search" placeholder="Nome ou e-mail">
+                </div>
+                <button id="atualizar-inscritos" type="button">Atualizar</button>
+            </div>
+            <p id="status-organizacao" role="status" aria-live="polite">Carregando...</p>
+        </section>
+
+        <section class="painel-organizacao" aria-labelledby="titulo-inscritos">
+            <div class="cabecalho-lista-organizacao">
+                <div>
+                    <h2 id="titulo-inscritos">Participantes inscritos</h2>
+                    <p id="resumo-organizacao">Selecione um evento para visualizar os inscritos.</p>
+                </div>
+            </div>
+            <div class="tabela-rolavel">
+                <table class="tabela-inscritos">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nome</th>
+                            <th scope="col">E-mail</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Data da inscrição</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-inscritos">
+                        <tr><td colspan="4">Nenhum evento selecionado.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <p class="aviso-privacidade">Os dados dos participantes são exclusivos para organização do evento. Não compartilhe publicamente esta listagem.</p>
+    </main>
+    <script src="{% static 'frontend/organizacao.js' %}"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 
 <!DOCTYPE html>
+{% load static %}
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +8,7 @@
 
     <title>Cloud Challenge | Semana Acadêmica</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
 </head>
 <body>
 
@@ -42,7 +43,7 @@
                 </p>
 
                 <div class="hero-info">
-                    <span>📅 10 a 12 de Nov 2026</span>
+                    <span>📅 Confira as datas de cada evento</span>
                     <span>📍 Faculdade Senac</span>
                 </div>
 
@@ -112,6 +113,7 @@
                                 type="text"
                                 id="nome"
                                 name="nome"
+                                maxlength="200"
                                 placeholder="Digite seu nome"
                                 autocomplete="name"
                                 required
@@ -124,6 +126,7 @@
                                 type="email"
                                 id="email"
                                 name="email"
+                                maxlength="254"
                                 placeholder="Digite seu e-mail"
                                 autocomplete="email"
                                 required
@@ -166,9 +169,10 @@
         <div class="container">
             <p>Cloud Challenge | Faculdade Senac</p>
             <p>Projeto acadêmico - Semana Acadêmica</p>
+        <p><a href="/organizacao/" class="link-organizacao">Área da organização</a></p>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="{% static 'frontend/script.js' %}"></script>
 </body>
 </html>

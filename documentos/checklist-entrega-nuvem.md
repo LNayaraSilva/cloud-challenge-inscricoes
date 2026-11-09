@@ -10,9 +10,12 @@
 - [x] Interface original restaurada; execução #5 concluída.
 - [x] Requisitos de conexão PostgreSQL identificados neste pacote.
 - [x] Configurações de implantação e decisões técnicas documentadas neste pacote.
-- [ ] **Publicar estes documentos no GitHub** (commit e push). Só marcar após confirmar.
-- [ ] Definir servidor PostgreSQL, configurar `DATABASE_URL` e validar migrações (etapa operacional adicional; não declarar concluída).
-- [ ] Corrigir erro HTTP 500 de `/api/eventos` e validar inscrições reais (etapa operacional adicional).
+- [x] Documentos de infraestrutura enviados à branch de trabalho e Pull Request #13 aberta (conforme captura do GitHub).
+- [x] Conexão PostgreSQL validada pelo Django com `CONEXAO OK: 1` (teste realizado pelo responsável em 09/11/2026).
+- [x] Migrações Django exibidas como aplicadas no PostgreSQL (verificado no terminal da Azure).
+- [x] Endpoint `GET /api/eventos` retornando evento salvo no PostgreSQL.
+- [ ] Validar **inscrição real** após publicar a nova versão do frontend e conferir a área restrita de inscritos.
+- [ ] Confirmar no GitHub Actions a publicação dos novos arquivos e testar a tela em produção.
 
 ## Referências de evidência
 
