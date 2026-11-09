@@ -1,4 +1,4 @@
-name: Deploy Django e frontend no Azure - app-inscricoes-academicas01
+﻿name: Deploy Django e frontend no Azure - app-inscricoes-academicas01
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
       - name: Rodar testes do Django com SQLite temporario
         run: python backend/manage.py test api --noinput
         env:
-          DATABASE_URL: ''
+          DATABASE_URL: 'sqlite:///:memory:'
           DJANGO_DEBUG: 'True'
 
       - name: Configurar Node para os testes do frontend
@@ -64,7 +64,7 @@ jobs:
           if-no-files-found: error
 
   deploy:
-    # A branch no repositório oficial da equipe NÃO deve publicar
+    # A branch no repositÃ³rio oficial da equipe NÃƒO deve publicar
     # automaticamente na conta Azure pessoal utilizada no teste.
     if: github.repository == 'Luc4s22/cloud-challenge-inscricoes'
     runs-on: ubuntu-latest
@@ -93,3 +93,4 @@ jobs:
           app-name: app-inscricoes-academicas01
           slot-name: Production
           package: .
+
