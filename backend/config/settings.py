@@ -21,6 +21,15 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+
+# Dominio autorizado para login e formularios na Azure
+CSRF_TRUSTED_ORIGINS = [
+    "https://app-inscricoes-academicas01-cycnhmbzd4g4gugu.mexicocentral-01.azurewebsites.net"
+]
+
+# Reconhecer HTTPS encaminhado pelo proxy do Azure App Service
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 CORS_ALLOWED_ORIGINS = [
     origem.strip()
     for origem in os.getenv(
