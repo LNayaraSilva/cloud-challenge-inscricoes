@@ -4,37 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Cloud Challenge | Semana Acadêmica</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Menu de navegação -->
     <nav class="navbar">
         <div class="container nav-content">
-            <a href="#inicio">
-            </a>
-
             <div class="nav-links">
                 <a href="#inicio">Início</a>
                 <a href="#eventos">Eventos</a>
+                <a href="#participantes">Participantes</a>
                 <a href="#inscricao">Inscrições</a>
                 <a href="#sobre">Sobre</a>
             </div>
         </div>
     </nav>
 
-    <!-- Apresentação principal -->
     <header class="hero" id="inicio">
         <div class="container hero-content">
             <div class="hero-text">
-                <span class="hero-tag">Semana Acadêmica</span>
-
-                <h1>
-                    Semana <span>Acadêmica</span>
-                </h1>
+                <span class="hero-tag">Cloud Challenge</span>
+                <h1>Semana <span>Acadêmica</span></h1>
 
                 <p>
                     Participe de palestras, oficinas e experiências
@@ -42,7 +33,7 @@
                 </p>
 
                 <div class="hero-info">
-                    <span>📅 10 a 12 de Nov 2026</span>
+                    <span>📅 10 a 12 de novembro de 2026</span>
                     <span>📍 Faculdade Senac</span>
                 </div>
 
@@ -52,23 +43,18 @@
             </div>
 
             <div class="hero-visual" aria-hidden="true">
-                <div class="visual-circle">
-                    <span>🎓</span>
-                </div>
+                <div class="visual-circle">🎓</div>
             </div>
         </div>
     </header>
 
     <main class="container">
 
-        <!-- Listagem dos eventos -->
         <section class="eventos-section" id="eventos">
             <div class="section-header">
                 <div>
                     <h2>Eventos disponíveis</h2>
-                    <p>
-                        Confira a programação e garanta sua participação.
-                    </p>
+                    <p>Confira a programação e garanta sua participação.</p>
                 </div>
 
                 <div class="search-box">
@@ -89,7 +75,6 @@
                     </div>
                 </div>
 
-                <!-- Formulário de inscrição -->
                 <aside class="inscricao-panel" id="inscricao">
                     <div class="panel-header">
                         <h2>Inscrição no evento</h2>
@@ -105,25 +90,19 @@
                         </div>
 
                         <form id="form-inscricao">
-                            <label for="nome">
-                                Nome completo *
-                            </label>
+                            <label for="nome">Nome completo *</label>
                             <input
                                 type="text"
                                 id="nome"
-                                name="nome"
                                 placeholder="Digite seu nome"
                                 autocomplete="name"
                                 required
                             >
 
-                            <label for="email">
-                                E-mail *
-                            </label>
+                            <label for="email">E-mail *</label>
                             <input
                                 type="email"
                                 id="email"
-                                name="email"
                                 placeholder="Digite seu e-mail"
                                 autocomplete="email"
                                 required
@@ -146,17 +125,54 @@
             </div>
         </section>
 
-        <!-- Informações do projeto -->
+        <section class="participantes-section" id="participantes">
+            <div class="section-header">
+                <div>
+                    <h2>Participantes inscritos</h2>
+                    <p>Consulte os participantes de cada evento.</p>
+                </div>
+            </div>
+
+            <div class="participantes-container">
+                <label for="selecionar-evento">
+                    Selecione um evento
+                </label>
+
+                <select id="selecionar-evento">
+                    <option value="">Escolha um evento</option>
+                </select>
+
+                <h3>Lista de inscrições</h3>
+                <p id="total-inscritos">Total de inscritos: 0</p>
+
+                <div class="tabela-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-participantes">
+                            <tr>
+                                <td colspan="2">
+                                    Selecione um evento para visualizar os participantes.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
         <section class="sobre-section" id="sobre">
             <h2>Sobre o projeto</h2>
             <p>
-                O Cloud Challenge é um projeto acadêmico de
-                desenvolvimento de um sistema para gerenciamento
-                de eventos e inscrições da Semana Acadêmica.
+                O Cloud Challenge é um projeto acadêmico para
+                gerenciamento de eventos e inscrições da Semana Acadêmica.
             </p>
             <p>
-                Tecnologias: HTML, CSS, JavaScript,
-                Django e PostgreSQL.
+                Tecnologias: HTML, CSS, JavaScript, Django e PostgreSQL.
             </p>
         </section>
 
