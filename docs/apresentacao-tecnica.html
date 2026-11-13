@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Challenge — Apresentação Técnica</title>
+<style>
+  :root {
+    --bg: #eef2f0;
+    --paper: #ffffff;
+    --ink: #17261f;
+    --muted: #5b6b63;
+    --line: #dbe3df;
+    --brand: #215b39;
+    --front: #0f766e;
+    --back: #4338ca;
+    --azure: #0078d4;
+    --qa: #b45309;
+    --ok: #15803d;
+    --warn: #b45309;
+    --bad: #b91c1c;
+    --accent: var(--brand);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #1b2620; font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); }
+  body { overflow: hidden; }
+
+  /* Palco fixo 16:9 escalado para a janela */
+  #stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }
+  .slide { position: absolute; inset: 0; background: var(--bg); padding: 54px 72px 64px; display: none; flex-direction: column; overflow: hidden; }
+  .slide.active { display: flex; }
+  .slide[data-bloco="front"] { --accent: var(--front); }
+  .slide[data-bloco="back"]  { --accent: var(--back); }
+  .slide[data-bloco="azure"] { --accent: var(--azure); }
+  .slide[data-bloco="qa"]    { --accent: var(--qa); }
+
+  .chip { display: inline-block; align-self: flex-start; padding: 5px 14px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px; }
+  h1 { font-size: 46px; margin: 0 0 8px; line-height: 1.1; }
+  h2 { font-size: 36px; margin: 0 0 6px; line-height: 1.15; color: var(--ink); }
+  h2 .destaque, h1 .destaque { color: var(--accent); }
+  .sub { font-size: 20px; color: var(--muted); margin: 0 0 22px; }
+  h3 { font-size: 19px; margin: 0 0 8px; color: var(--accent); }
+  p, li { font-size: 18px; line-height: 1.45; }
+  ul { margin: 0; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--accent); }
+  code, pre { font-family: Consolas, "Cascadia Mono", monospace; }
+  code { background: #e3ebe7; padding: 1px 6px; border-radius: 5px; font-size: .92em; }
+  pre { margin: 0; background: #14211b; color: #dbe7e1; padding: 16px 18px; border-radius: 12px; font-size: 14.5px; line-height: 1.5; overflow: hidden; white-space: pre; }
+  pre .c { color: #7f978b; } pre .k { color: #f0b86e; } pre .s { color: #9fd8a8; } pre .f { color: #8cc4ff; }
+
+  .grid { display: grid; gap: 18px; flex: 1; min-height: 0; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .g-55-45 { grid-template-columns: 1.15fr .85fr; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(20, 40, 30, .05); min-height: 0; }
+  .card.borda { border-top: 5px solid var(--accent); }
+  .card p { margin: 0 0 8px; font-size: 16.5px; }
+  .card li { font-size: 16.5px; margin-bottom: 4px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 14px !important; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--paper); border-radius: 12px; overflow: hidden; font-size: 16px; }
+  th { background: var(--accent); color: #fff; text-align: left; padding: 9px 12px; font-size: 15px; }
+  td { padding: 8px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+  tr:nth-child(even) td { background: #f7faf8; }
+  table.compacta td { padding: 5px 12px; }
+  table.compacta th { padding: 7px 12px; }
+
+  .tag { display: inline-block; padding: 2px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; color: #fff; }
+  .get { background: #15803d; } .post { background: #1d4ed8; } .del { background: #b91c1c; }
+  .pub { background: #e7f5ec; color: #166534; } .rest { background: #fdecec; color: #991b1b; }
+  .tag.pub, .tag.rest { font-weight: 600; }
+
+  .num { font-size: 52px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .num-label { font-size: 16px; color: var(--muted); margin-top: 6px; }
+
+  /* Diagramas */
+  .fluxo { display: flex; align-items: stretch; gap: 10px; }
+  .no { flex: 1; background: var(--paper); border: 2px solid var(--accent); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.35; }
+  .no b { display: block; font-size: 16px; margin-bottom: 4px; color: var(--accent); }
+  .seta { align-self: center; font-size: 26px; color: var(--accent); font-weight: 700; }
+  .caixa { border: 2px dashed var(--accent); border-radius: 16px; padding: 14px 16px 16px; background: rgba(255,255,255,.55); }
+  .caixa > .rotulo { font-size: 14px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+
+  .passos { counter-reset: passo; list-style: none; padding: 0; margin: 0; }
+  .passos li { counter-increment: passo; position: relative; padding-left: 46px; margin-bottom: 12px; }
+  .passos li::before { content: counter(passo); position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 15px; }
+
+  .status { display: inline-block; font-weight: 700; font-size: 13px; padding: 2px 8px; border-radius: 6px; }
+  .status.ok { background: #dcfce7; color: #166534; }
+  .status.pend { background: #fef3c7; color: #92400e; }
+  .status.bug { background: #fee2e2; color: #991b1b; }
+
+  /* Vídeos de demonstração */
+  .video { display: block; width: 100%; background: #0d1512; border-radius: 12px; box-shadow: 0 8px 22px rgba(20, 40, 30, .18); }
+  .video-legenda { font-size: 15px; color: var(--muted); margin: 8px 2px 0; }
+  .video-legenda b { color: var(--ink); }
+  .demo-layout { display: grid; grid-template-columns: 1fr 310px; gap: 20px; flex: 1; min-height: 0; align-items: start; }
+
+  /* Divisórias de bloco */
+  .slide.divisor { background: var(--accent); color: #fff; justify-content: center; }
+  .slide.divisor .indice { font-size: 22px; font-weight: 700; opacity: .8; letter-spacing: .1em; }
+  .slide.divisor h1 { font-size: 88px; color: #fff; margin: 6px 0 16px; }
+  .slide.divisor p { font-size: 24px; max-width: 900px; opacity: .92; margin: 0; }
+  .slide.divisor .resp { margin-top: 34px; font-size: 18px; opacity: .85; }
+
+  /* Capa */
+  .slide.capa { background: linear-gradient(135deg, #17392a 0%, #215b39 55%, #2f7a4f 100%); color: #fff; justify-content: center; }
+  .slide.capa h1 { font-size: 64px; color: #fff; }
+  .slide.capa .sub { color: #d5eadc; font-size: 26px; }
+  .blocos-capa { display: flex; gap: 14px; margin-top: 38px; }
+  .blocos-capa span { padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 18px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.3); }
+  .equipe-capa { margin-top: 34px; }
+  .equipe-titulo { font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #a7d8b9; margin-bottom: 10px; }
+  .equipe-nomes { display: grid; grid-template-columns: repeat(3, 250px); gap: 10px 24px; }
+  .equipe-nomes span { font-size: 21px; font-weight: 600; color: #fff; padding-left: 14px; border-left: 3px solid rgba(251, 191, 36, .85); }
+  .blocos-capa span i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; font-style: normal; }
+
+  /* Rodapé e navegação */
+  .rodape { position: absolute; left: 72px; right: 72px; bottom: 22px; display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+  .slide.divisor .rodape, .slide.capa .rodape { color: rgba(255,255,255,.75); }
+  #progresso { position: fixed; left: 0; bottom: 0; height: 5px; background: var(--brand); transition: width .25s, background .25s; z-index: 5; }
+  #ajuda { position: fixed; right: 14px; top: 10px; color: #9fb3a8; font-size: 12px; z-index: 5; font-family: "Segoe UI", Arial, sans-serif; transition: opacity 1s; }
+  #ajuda.oculta { opacity: 0; }
+
+  /* ================================ ANIMAÇÕES ================================ */
+  @keyframes entrarSlide { from { opacity: 0; transform: translateX(var(--dx, 48px)); } to { opacity: 1; transform: none; } }
+  @keyframes subir      { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  @keyframes surgir     { from { opacity: 0; transform: scale(.86); } 70% { transform: scale(1.03); } to { opacity: 1; transform: none; } }
+  @keyframes deslizar   { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+  @keyframes fluxo      { 0%, 100% { transform: translateX(-3px); opacity: .45; } 50% { transform: translateX(5px); opacity: 1; } }
+  @keyframes gradiente  { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  @keyframes flutuar    { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(40px, -30px) scale(1.12); } }
+  @keyframes listras    { from { background-position: 0 0; } to { background-position: 113px 0; } }
+  @keyframes alerta     { 0%, 100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0); } 50% { box-shadow: 0 0 0 5px rgba(185, 28, 28, .16); } }
+  @keyframes tracejado  { from { background-position: 0 0, 0 100%, 0 0, 100% 0; } to { background-position: 40px 0, -40px 100%, 0 -40px, 100% 40px; } }
+
+  /* Entrada do slide: direção definida pelo JS (--dx positivo ao avançar, negativo ao voltar) */
+  .slide.active { animation: entrarSlide .6s cubic-bezier(.2, .75, .2, 1) both; }
+
+  /* Entrada em cascata dos elementos marcados pelo JS com .anim e --i */
+  .slide.active .anim {
+    animation: subir .65s cubic-bezier(.2, .75, .2, 1) backwards;
+    animation-delay: calc(140ms + var(--i, 0) * 60ms);
+  }
+  .slide.active .anim.a-surgir   { animation-name: surgir; }
+  .slide.active .anim.a-deslizar { animation-name: deslizar; }
+  .slide.active .anim.a-seta {
+    animation: surgir .5s cubic-bezier(.2, .75, .2, 1) backwards, fluxo 1.7s ease-in-out infinite;
+    animation-delay: calc(140ms + var(--i, 0) * 60ms), calc(700ms + var(--i, 0) * 60ms);
+  }
+  .slide.active .passos li::before { animation: surgir .5s cubic-bezier(.2, .75, .2, 1) backwards; animation-delay: inherit; }
+
+  /* Interações */
+  .card { transition: transform .25s ease, box-shadow .25s ease; }
+  .card:hover { transform: translateY(-5px); box-shadow: 0 14px 28px rgba(20, 40, 30, .13); }
+  .no { transition: transform .2s ease, background .2s ease; }
+  .no:hover { transform: translateY(-3px); background: #fbfdfc; }
+  tr { transition: background .2s; }
+  table tr:hover td { background: #eef6f1; }
+  .status.bug { animation: alerta 2.2s ease-in-out infinite; }
+  #progresso { box-shadow: 0 0 12px currentColor; }
+
+  /* Caixas tracejadas da arquitetura: borda "em movimento" */
+  .caixa.viva {
+    border: none;
+    padding: 16px 18px 18px;
+    background-color: var(--fundo-caixa, rgba(255, 255, 255, .55));
+    background-image:
+      linear-gradient(90deg, var(--accent) 50%, transparent 0),
+      linear-gradient(90deg, var(--accent) 50%, transparent 0),
+      linear-gradient(0deg, var(--accent) 50%, transparent 0),
+      linear-gradient(0deg, var(--accent) 50%, transparent 0);
+    background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+    background-size: 20px 2px, 20px 2px, 2px 20px, 2px 20px;
+    background-position: 0 0, 0 100%, 0 0, 100% 0;
+  }
+  .slide.active .caixa.viva {
+    animation: subir .65s cubic-bezier(.2, .75, .2, 1) backwards, tracejado 2.2s linear infinite;
+    animation-delay: calc(140ms + var(--i, 0) * 60ms), 0s;
+  }
+
+  /* Capa: gradiente animado e formas flutuantes */
+  .slide.capa {
+    background: linear-gradient(120deg, #10291e, #215b39, #2f7a4f, #1d5a63, #17392a);
+    background-size: 300% 300%;
+  }
+  .slide.capa.active { animation: entrarSlide .6s cubic-bezier(.2, .75, .2, 1) both, gradiente 18s ease infinite; }
+  .slide.capa::before, .slide.capa::after,
+  .slide.divisor::before {
+    content: ""; position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none;
+    animation: flutuar 12s ease-in-out infinite;
+  }
+  .slide.capa::before { width: 420px; height: 420px; right: -60px; top: -80px; background: rgba(45, 212, 191, .35); }
+  .slide.capa::after  { width: 360px; height: 360px; right: 260px; bottom: -160px; background: rgba(251, 191, 36, .22); animation-delay: -6s; }
+  .slide.capa > *:not(.rodape), .slide.divisor > *:not(.rodape) { position: relative; z-index: 1; }
+
+  /* Divisórias: listras em movimento e brilho flutuante */
+  .slide.divisor {
+    background-color: var(--accent);
+    background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .07) 0 20px, transparent 20px 40px);
+  }
+  .slide.divisor.active { animation: entrarSlide .6s cubic-bezier(.2, .75, .2, 1) both, listras 6s linear infinite; }
+  .slide.divisor::before { width: 520px; height: 520px; right: -120px; top: 60px; background: rgba(255, 255, 255, .22); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  @media print {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { background: #fff; overflow: visible; height: auto; }
+    #stage { position: static; transform: none !important; width: auto; height: auto; }
+    .slide { display: flex !important; position: relative; width: 1280px; height: 720px; page-break-after: always; break-after: page; }
+    #progresso, #ajuda { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============================ CAPA ============================ -->
+<section class="slide capa">
+  <span class="chip" style="background:rgba(255,255,255,.18)">Cloud Challenge · Faculdade Senac</span>
+  <h1>Sistema de Inscrições<br>da Semana Acadêmica</h1>
+  <p class="sub">Apresentação técnica: arquitetura, implementação, nuvem e qualidade</p>
+  <div class="blocos-capa">
+    <span><i style="background:#2dd4bf"></i>Front-end</span>
+    <span><i style="background:#a5b4fc"></i>Back-end</span>
+    <span><i style="background:#7cc4ff"></i>Azure</span>
+    <span><i style="background:#fbbf24"></i>QA</span>
+  </div>
+  <div class="equipe-capa">
+    <div class="equipe-titulo">Equipe</div>
+    <div class="equipe-nomes">
+      <span>Anderson Bem</span>
+      <span>Laís Nayara</span>
+      <span>Lucas Mendes</span>
+      <span>Matheus Goes</span>
+      <span>Wendell Barboza</span>
+      <span>Wendel Brasiliano</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ VISÃO GERAL ============================ -->
+<section class="slide">
+  <span class="chip">Visão geral</span>
+  <h2>O que o sistema faz</h2>
+  <p class="sub">Visitantes consultam a programação e se inscrevem; a organização acompanha os inscritos.</p>
+  <div class="grid g4" style="flex:0 0 auto; margin-bottom:22px">
+    <div class="card"><div class="num">3</div><div class="num-label">telas: vitrine, comprovante e painel da organização</div></div>
+    <div class="card"><div class="num">7</div><div class="num-label">operações na API REST (JSON)</div></div>
+    <div class="card"><div class="num">1</div><div class="num-label">App Service servindo site e API na mesma origem</div></div>
+    <div class="card"><div class="num">131</div><div class="num-label">testes automatizados Playwright (API + interface)</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card borda">
+      <h3>Jornada do visitante</h3>
+      <ul>
+        <li>Lista eventos com vagas calculadas em tempo real</li>
+        <li>Busca por título ou palestrante</li>
+        <li>Inscrição com nome e e-mail, sem login</li>
+        <li>Comprovante com o número da inscrição</li>
+      </ul>
+    </div>
+    <div class="card borda">
+      <h3>Jornada da organização</h3>
+      <ul>
+        <li>Login de organizador (conta Django com <code>is_staff</code>)</li>
+        <li>Planilha de inscritos com pesquisa e filtro por evento</li>
+        <li>Cadastro de eventos e cancelamento de inscrições</li>
+        <li>Administração completa em <code>/admin/</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ ARQUITETURA ============================ -->
+<section class="slide">
+  <span class="chip">Visão geral</span>
+  <h2>Arquitetura da solução</h2>
+  <p class="sub">Um único serviço Django entrega as páginas, os arquivos estáticos e a API.</p>
+  <div style="display:grid; grid-template-columns: 210px 40px 1fr 40px 230px; align-items:center; gap:0; margin-top:6px">
+    <div class="no" style="--accent:var(--front)"><b>Navegador</b>HTML, CSS e JavaScript puro<br><span class="muted small">visitante e organização</span></div>
+    <div class="seta" style="text-align:center">⇄</div>
+    <div class="caixa" style="--accent:var(--azure)">
+      <div class="rotulo">Azure App Service · Linux · Free F1 · Mexico Central</div>
+      <div class="caixa" style="--accent:var(--back); --fundo-caixa:#fff">
+        <div class="rotulo">Gunicorn → Django 5.2</div>
+        <div class="grid g2" style="gap:10px">
+          <div class="no" style="--accent:var(--front)"><b>Páginas</b><code>/</code> · <code>/inscricao-confirmada/</code> · <code>/organizacao/</code></div>
+          <div class="no" style="--accent:var(--back)"><b>API REST</b><code>/health</code> · <code>/api/eventos</code> · <code>/api/inscricoes</code></div>
+          <div class="no" style="--accent:var(--back)"><b>Django Admin</b>login de organizador e gestão</div>
+          <div class="no" style="--accent:var(--front)"><b>WhiteNoise</b>serve CSS e JS coletados</div>
+        </div>
+      </div>
+    </div>
+    <div class="seta" style="text-align:center">⇄</div>
+    <div class="no" style="--accent:var(--back)"><b>PostgreSQL</b>conexão por <code>DATABASE_URL</code><br><span class="muted small">SSL obrigatório</span></div>
+  </div>
+  <div class="fluxo" style="margin-top:26px; --accent:var(--azure)">
+    <div class="no"><b>GitHub · main</b>push no repositório</div>
+    <div class="seta">→</div>
+    <div class="no"><b>GitHub Actions</b>testes + build + artefato</div>
+    <div class="seta">→</div>
+    <div class="no"><b>Login federado (OIDC)</b>sem senha guardada no pipeline</div>
+    <div class="seta">→</div>
+    <div class="no"><b>Deploy</b>pacote publicado no App Service</div>
+  </div>
+</section>
+
+<!-- ============================ AGENDA / EQUIPE ============================ -->
+<section class="slide">
+  <span class="chip">Agenda</span>
+  <h2>Blocos da apresentação e responsáveis</h2>
+  <p class="sub">Divisão de papéis conforme o contrato da API do projeto.</p>
+  <div class="grid g4">
+    <div class="card borda" style="--accent:var(--front)"><h3>1 · Front-end</h3><p>Telas, fluxo de inscrição, integração com a API e cuidados com dados pessoais.</p><p class="muted small">Laís Nayara (DEV)</p></div>
+    <div class="card borda" style="--accent:var(--back)"><h3>2 · Back-end</h3><p>Modelo de dados, endpoints, regras de negócio, concorrência e segurança.</p><p class="muted small">Anderson Bem (DEV) · Wendel Brasiliano (DADOS)</p></div>
+    <div class="card borda" style="--accent:var(--azure)"><h3>3 · Azure</h3><p>Recursos provisionados, decisões técnicas, CI/CD e configuração do ambiente.</p><p class="muted small">Lucas Mendes · Wendell Barboza (NUVEM)</p></div>
+    <div class="card borda" style="--accent:var(--qa)"><h3>4 · QA</h3><p>Estratégia de testes, automação Playwright, resultados e defeitos encontrados.</p><p class="muted small">Matheus Goes (QA)</p></div>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<!-- ============================ FRONT-END ================================ -->
+<!-- ======================================================================= -->
+<section class="slide divisor" data-bloco="front">
+  <div class="indice">BLOCO 1</div>
+  <h1>Front-end</h1>
+  <p>HTML, CSS e JavaScript puro, servidos como templates Django e integrados à API real.</p>
+  <div class="resp">Laís Nayara · DEV</div>
+</section>
+
+<section class="slide" data-bloco="front">
+  <span class="chip">Front-end</span>
+  <h2>Três telas, <span class="destaque">sem framework</span></h2>
+  <p class="sub">Templates Django com <code>{% static %}</code>; mesma origem da API, sem CORS.</p>
+  <div class="grid g3">
+    <div class="card borda">
+      <h3>Página pública <code>/</code></h3>
+      <ul>
+        <li>Cards de eventos com início, término, local e vagas</li>
+        <li>Busca por título ou palestrante</li>
+        <li>Painel de inscrição: nome e e-mail obrigatórios</li>
+        <li>Botão muda conforme o estado: <i>Inscrever-se</i>, <i>Vagas esgotadas</i>, <i>Inscrições encerradas</i></li>
+        <li>Tabela de inscritos, visível apenas para a organização</li>
+      </ul>
+      <p class="muted small" style="margin-top:8px">index.html · script.js · style.css</p>
+    </div>
+    <div class="card borda">
+      <h3>Comprovante <code>/inscricao-confirmada/</code></h3>
+      <ul>
+        <li>Mostra evento, participante, e-mail, data, local, situação e número</li>
+        <li>Dados lidos do <code>sessionStorage</code> desta aba, nunca da URL</li>
+        <li>Válido por 30 minutos; após isso mostra “Nenhuma inscrição para exibir”</li>
+        <li>Opção de imprimir o resumo</li>
+      </ul>
+      <p class="muted small" style="margin-top:8px">inscricao-confirmada.html</p>
+    </div>
+    <div class="card borda">
+      <h3>Painel <code>/organizacao/</code></h3>
+      <ul>
+        <li>Rota protegida: sem login, redireciona para <code>/admin/login/</code></li>
+        <li>Planilha: nº, nome, e-mail, evento, status, data</li>
+        <li>Pesquisa por nome, e-mail ou evento</li>
+        <li>Filtro por evento e botão <i>Atualizar</i></li>
+        <li>Somente leitura</li>
+      </ul>
+      <p class="muted small" style="margin-top:8px">organizacao.html · organizacao.js · organizacao.css</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="front">
+  <span class="chip">Front-end</span>
+  <h2>Fluxo de inscrição no navegador</h2>
+  <p class="sub">A interface só confirma depois que a API grava; quem decide as regras é o servidor.</p>
+  <div class="grid g-55-45">
+    <ol class="passos" style="align-self:start">
+      <li><b>Carregar eventos:</b> <code>GET /api/eventos</code> (<code>cache: 'no-store'</code>) e montar os cards.</li>
+      <li><b>Selecionar:</b> só eventos futuros e com vagas habilitam o envio.</li>
+      <li><b>Enviar:</b> <code>POST /api/eventos/{id}/inscricoes</code>; botão vira “Confirmando...” e fica desabilitado (evita clique duplo).</li>
+      <li><b>Sucesso (201):</b> grava o resumo no <code>sessionStorage</code> e abre o comprovante.</li>
+      <li><b>Erro (400/409/422):</b> exibe a <code>mensagem</code> devolvida pela API, ex.: “Este e-mail já está inscrito no evento.”</li>
+    </ol>
+    <pre><span class="k">const</span> resposta = <span class="k">await</span> <span class="f">fetch</span>(
+  <span class="s">`${API_EVENTOS}/${encodeURIComponent(escolhido.id)}/inscricoes`</span>, {
+    method: <span class="s">'POST'</span>,
+    headers: {<span class="s">'Content-Type'</span>: <span class="s">'application/json'</span>},
+    body: JSON.<span class="f">stringify</span>({participante: {nome, email}})
+});
+<span class="k">const</span> dados = <span class="k">await</span> resposta.<span class="f">json</span>().<span class="f">catch</span>(() =&gt; ({}));
+<span class="k">if</span> (!resposta.ok) {
+  <span class="k">throw new</span> <span class="f">Error</span>(dados.mensagem
+    || <span class="s">`Erro ${resposta.status} ao confirmar inscrição.`</span>);
+}
+<span class="c">// Só exibe o comprovante depois que a API confirmou.</span>
+sessionStorage.<span class="f">setItem</span>(<span class="s">'semana_academica_inscricao_confirmada_v1'</span>,
+  JSON.<span class="f">stringify</span>(resumoInscricao));
+location.<span class="f">assign</span>(<span class="s">'/inscricao-confirmada/'</span>);</pre>
+  </div>
+</section>
+
+<section class="slide" data-bloco="front">
+  <span class="chip">Front-end</span>
+  <h2>Boas práticas aplicadas na interface</h2>
+  <p class="sub">Segurança, acessibilidade e robustez sem dependências externas.</p>
+  <div class="grid g3">
+    <div class="card borda">
+      <h3>Segurança</h3>
+      <ul>
+        <li>Conteúdo da API inserido com <code>textContent</code>, sem interpretar HTML (evita XSS)</li>
+        <li>Dados pessoais fora da URL</li>
+        <li>Tabela de inscritos depende da autorização do back-end: o visitante recebe 403 e vê só um aviso</li>
+      </ul>
+    </div>
+    <div class="card borda">
+      <h3>Acessibilidade</h3>
+      <ul>
+        <li>Campos com <code>&lt;label&gt;</code> associado</li>
+        <li>Mensagens em <code>role="status"</code> e <code>aria-live="polite"</code></li>
+        <li><code>aria-busy</code> no formulário durante o envio</li>
+        <li><code>lang="pt-BR"</code> e datas formatadas em pt-BR</li>
+      </ul>
+    </div>
+    <div class="card borda">
+      <h3>Robustez</h3>
+      <ul>
+        <li>Estados de carregando, lista vazia e erro de conexão</li>
+        <li>Valida formato da resposta (<code>Array.isArray</code>)</li>
+        <li>Validação nativa do HTML5 (<code>required</code>, <code>type="email"</code>)</li>
+        <li>Lista recarregada após inscrever para atualizar as vagas</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<!-- ============================ BACK-END ================================= -->
+<!-- ======================================================================= -->
+<section class="slide divisor" data-bloco="back">
+  <div class="indice">BLOCO 2</div>
+  <h1>Back-end</h1>
+  <p>API REST em Django 5.2, com regras de negócio protegidas por transação e restrições no banco.</p>
+  <div class="resp">Anderson Bem · DEV &nbsp;|&nbsp; Wendel Brasiliano · DADOS</div>
+</section>
+
+<section class="slide" data-bloco="back">
+  <span class="chip">Back-end</span>
+  <h2>Stack e organização do código</h2>
+  <p class="sub">Configuração por variáveis de ambiente: o mesmo código roda local, no CI e na Azure.</p>
+  <div class="grid g2">
+    <div class="card borda">
+      <h3>Tecnologias</h3>
+      <table>
+        <tr><td><b>Django 5.2</b></td><td>framework web, ORM, admin, sessões e CSRF</td></tr>
+        <tr><td><b>PostgreSQL + psycopg 3</b></td><td>banco de produção</td></tr>
+        <tr><td><b>dj-database-url</b></td><td>conexão via <code>DATABASE_URL</code> (SQLite como alternativa local)</td></tr>
+        <tr><td><b>Gunicorn</b></td><td>servidor WSGI na Azure</td></tr>
+        <tr><td><b>WhiteNoise</b></td><td>arquivos estáticos com compressão</td></tr>
+        <tr><td><b>django-cors-headers</b></td><td>origens liberadas por variável</td></tr>
+        <tr><td><b>python-dotenv</b></td><td>lê <code>backend/.env</code> local</td></tr>
+      </table>
+    </div>
+    <div class="card borda">
+      <h3>Estrutura</h3>
+<pre>backend/
+├── config/
+│   ├── settings.py   <span class="c"># variáveis de ambiente</span>
+│   └── urls.py       <span class="c"># páginas + admin + API</span>
+├── api/
+│   ├── models.py     <span class="c"># Evento, Inscricao</span>
+│   ├── views.py      <span class="c"># endpoints e regras</span>
+│   ├── serializers.py<span class="c"># objeto → JSON</span>
+│   ├── urls.py
+│   ├── admin.py
+│   └── tests.py      <span class="c"># 25 testes Django</span>
+└── manage.py</pre>
+      <p class="small muted" style="margin-top:10px">Variáveis: <code>DJANGO_SECRET_KEY</code>, <code>DJANGO_DEBUG</code>, <code>DJANGO_ALLOWED_HOSTS</code>, <code>DATABASE_URL</code>, <code>CORS_ALLOWED_ORIGINS</code></p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="back">
+  <span class="chip">Back-end</span>
+  <h2>Modelo de dados</h2>
+  <p class="sub">As regras críticas também existem como restrições no banco, não só no código.</p>
+  <div style="display:grid; grid-template-columns: 1fr 120px 1fr; align-items:center">
+    <div class="card borda">
+      <h3>Evento</h3>
+      <table class="small">
+        <tr><td><code>id</code></td><td>BigAutoField</td></tr>
+        <tr><td><code>titulo</code>, <code>palestrante</code>, <code>local</code></td><td>texto (200)</td></tr>
+        <tr><td><code>descricao</code></td><td>texto</td></tr>
+        <tr><td><code>data_inicio</code>, <code>data_fim</code></td><td>data e hora com fuso</td></tr>
+        <tr><td><code>capacidade</code></td><td>inteiro positivo</td></tr>
+        <tr><td><code>criado_em</code></td><td>automático</td></tr>
+      </table>
+    </div>
+    <div style="text-align:center; color:var(--accent); font-weight:700; font-size:18px">1 ──── N<br><span class="small muted">CASCADE</span></div>
+    <div class="card borda">
+      <h3>Inscricao</h3>
+      <table class="small">
+        <tr><td><code>id</code></td><td>BigAutoField</td></tr>
+        <tr><td><code>evento</code></td><td>chave estrangeira → Evento</td></tr>
+        <tr><td><code>participante_nome</code></td><td>texto (200)</td></tr>
+        <tr><td><code>participante_email</code></td><td>e-mail, salvo em minúsculas</td></tr>
+        <tr><td><code>status</code></td><td><code>confirmada</code></td></tr>
+        <tr><td><code>criada_em</code></td><td>automático</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="grid g3" style="flex:0 0 auto; margin-top:18px">
+    <div class="card"><h3>CHECK</h3><p><code>capacidade &gt; 0</code></p></div>
+    <div class="card"><h3>CHECK</h3><p><code>data_fim &gt; data_inicio</code></p></div>
+    <div class="card"><h3>UNIQUE</h3><p><code>(evento, participante_email)</code>: um e-mail por evento</p></div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="back">
+  <span class="chip">Back-end</span>
+  <h2>Endpoints da API</h2>
+  <p class="sub">JSON, datas ISO 8601 com fuso; IDs, datas de criação e vagas calculados pelo servidor.</p>
+  <table class="compacta">
+    <tr><th style="width:90px">Método</th><th style="width:300px">Rota</th><th>Função</th><th style="width:230px">Acesso</th><th style="width:150px">Sucesso</th></tr>
+    <tr><td><span class="tag get">GET</span></td><td><code>/health</code></td><td>Verificar se a aplicação responde</td><td><span class="tag pub">público</span></td><td>200</td></tr>
+    <tr><td><span class="tag get">GET</span></td><td><code>/api/eventos</code></td><td>Listar eventos e vagas disponíveis</td><td><span class="tag pub">público</span></td><td>200</td></tr>
+    <tr><td><span class="tag get">GET</span></td><td><code>/api/eventos/{id}</code></td><td>Consultar um evento</td><td><span class="tag pub">público</span></td><td>200</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td><code>/api/eventos/{id}/inscricoes</code></td><td>Inscrever participante</td><td><span class="tag pub">público</span></td><td>201</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td><code>/api/eventos</code></td><td>Cadastrar evento</td><td><span class="tag rest">organizador + CSRF</span></td><td>201</td></tr>
+    <tr><td><span class="tag get">GET</span></td><td><code>/api/eventos/{id}/inscricoes</code></td><td>Listar inscritos (nomes e e-mails)</td><td><span class="tag rest">organizador</span></td><td>200</td></tr>
+    <tr><td><span class="tag del">DELETE</span></td><td><code>/api/inscricoes/{id}</code></td><td>Cancelar inscrição e liberar a vaga</td><td><span class="tag rest">organizador + CSRF</span></td><td>204</td></tr>
+  </table>
+  <div class="grid g2" style="flex:0 0 auto; margin-top:16px">
+    <pre><span class="c">// Erro padronizado (400, 403, 404, 409, 422)</span>
+{
+  <span class="s">"erro"</span>: <span class="s">"DADOS_INVALIDOS"</span>,
+  <span class="s">"mensagem"</span>: <span class="s">"Os dados do participante são inválidos."</span>,
+  <span class="s">"campos"</span>: { <span class="s">"participante.email"</span>: <span class="s">"Informe um e-mail válido."</span> }
+}</pre>
+    <div class="card"><h3>Códigos de erro</h3><p class="small"><code>JSON_INVALIDO</code> · <code>DADOS_INVALIDOS</code> · <code>ACESSO_NEGADO</code> · <code>EVENTO_NAO_ENCONTRADO</code> · <code>EVENTO_INICIADO</code> · <code>INSCRICAO_DUPLICADA</code> · <code>VAGAS_ESGOTADAS</code> · <code>INSCRICAO_NAO_ENCONTRADA</code></p></div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="back">
+  <span class="chip">Back-end</span>
+  <h2>Regras de negócio e concorrência</h2>
+  <p class="sub">Duas pessoas disputando a última vaga: só uma é confirmada, a outra recebe 409.</p>
+  <div class="grid g-55-45">
+<pre><span class="k">with</span> transaction.<span class="f">atomic</span>():
+    <span class="c"># Trava a linha do evento até o fim da transação</span>
+    evento = Evento.objects.<span class="f">select_for_update</span>().<span class="f">get</span>(pk=evento_id)
+
+    <span class="k">if</span> evento.data_inicio &lt;= timezone.<span class="f">now</span>():
+        <span class="k">return</span> <span class="f">resposta_erro</span>(<span class="s">"EVENTO_INICIADO"</span>, ..., <span class="s">422</span>)
+
+    <span class="k">if</span> Inscricao.objects.<span class="f">filter</span>(evento=evento,
+            participante_email__iexact=email).<span class="f">exists</span>():
+        <span class="k">return</span> <span class="f">resposta_erro</span>(<span class="s">"INSCRICAO_DUPLICADA"</span>, ..., <span class="s">409</span>)
+
+    <span class="k">if</span> confirmadas &gt;= evento.capacidade:
+        <span class="k">return</span> <span class="f">resposta_erro</span>(<span class="s">"VAGAS_ESGOTADAS"</span>, ..., <span class="s">409</span>)
+
+    inscricao = Inscricao.objects.<span class="f">create</span>(...)
+<span class="c"># IntegrityError (UNIQUE no banco) também vira 409</span></pre>
+    <div class="card borda">
+      <h3>Ordem de validação da inscrição</h3>
+      <ol class="passos">
+        <li>JSON válido e objeto → senão <b>400</b></li>
+        <li>Nome e e-mail válidos → senão <b>400</b> com <code>campos</code></li>
+        <li>Evento existe → senão <b>404</b></li>
+        <li>Evento não começou → senão <b>422</b></li>
+        <li>E-mail inédito no evento → senão <b>409</b></li>
+        <li>Há vaga → senão <b>409</b></li>
+        <li>Cria e devolve <b>201</b></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="back">
+  <span class="chip">Back-end</span>
+  <h2>Segurança e proteção de dados</h2>
+  <p class="sub">Nomes e e-mails dos participantes só são expostos a organizadores autenticados.</p>
+  <div class="grid g3">
+    <div class="card borda">
+      <h3>Autenticação</h3>
+      <ul>
+        <li>Sessão Django; login pelo formulário do Django Admin</li>
+        <li>Organizador = usuário com <code>is_staff=True</code></li>
+        <li><code>/organizacao/</code> usa <code>@staff_member_required</code></li>
+        <li>Endpoints restritos respondem <b>403</b> <code>ACESSO_NEGADO</code></li>
+      </ul>
+    </div>
+    <div class="card borda">
+      <h3>CSRF</h3>
+      <ul>
+        <li>Cadastro de evento e cancelamento exigem token CSRF de sessão válida</li>
+        <li>Inscrição pública usa <code>@csrf_exempt</code>: é anônima, sem sessão a proteger</li>
+        <li><code>CSRF_TRUSTED_ORIGINS</code> com o domínio da Azure</li>
+      </ul>
+    </div>
+    <div class="card borda">
+      <h3>Validação e configuração</h3>
+      <ul>
+        <li>Validação no servidor: e-mail, datas com fuso, capacidade inteira ≥ 1</li>
+        <li>Segredos somente em variáveis de ambiente</li>
+        <li>Cabeçalhos: <code>X-Frame-Options: DENY</code>, <code>nosniff</code>, <code>COOP</code></li>
+        <li>HTTPS reconhecido atrás do proxy (<code>SECURE_PROXY_SSL_HEADER</code>)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<!-- ============================ AZURE ==================================== -->
+<!-- ======================================================================= -->
+<section class="slide divisor" data-bloco="azure">
+  <div class="indice">BLOCO 3</div>
+  <h1>Azure</h1>
+  <p>Hospedagem no Azure App Service com implantação contínua pelo GitHub Actions e banco PostgreSQL.</p>
+  <div class="resp">Lucas Mendes · Wendell Barboza · NUVEM</div>
+</section>
+
+<section class="slide" data-bloco="azure">
+  <span class="chip">Azure</span>
+  <h2>Recursos provisionados</h2>
+  <p class="sub">Assinatura Azure for Students, sem plano pago.</p>
+  <div class="grid g-55-45">
+    <table style="align-self:start">
+      <tr><th>Recurso</th><th>Configuração</th></tr>
+      <tr><td>Grupo de recursos</td><td><code>rg-inscricoes-2026</code></td></tr>
+      <tr><td>App Service (Web App)</td><td><code>app-inscricoes-academicas01</code> · Linux</td></tr>
+      <tr><td>Plano</td><td><code>asp-inscricoes-2026-mx</code> · Free F1</td></tr>
+      <tr><td>Região</td><td>Mexico Central</td></tr>
+      <tr><td>Runtime</td><td>Python 3.13 · Gunicorn</td></tr>
+      <tr><td>Banco de dados</td><td>PostgreSQL via <code>DATABASE_URL</code> com <code>sslmode=require</code></td></tr>
+      <tr><td>Endereço</td><td class="small"><code>app-inscricoes-academicas01-…​.mexicocentral-01.azurewebsites.net</code></td></tr>
+    </table>
+    <div class="card borda">
+      <h3>Comando de inicialização</h3>
+      <pre style="font-size:13.5px">gunicorn --bind 0.0.0.0:8000 \
+  --workers 1 --timeout 120 \
+  config.wsgi:application</pre>
+      <p style="margin-top:12px">Um único worker para caber na memória do plano gratuito.</p>
+      <h3 style="margin-top:14px">Variáveis em App settings</h3>
+      <p class="small"><code>DJANGO_SECRET_KEY</code> · <code>DJANGO_DEBUG=False</code> · <code>DJANGO_ALLOWED_HOSTS</code> · <code>DATABASE_URL</code> · <code>SCM_DO_BUILD_DURING_DEPLOYMENT</code></p>
+      <p class="small muted">Nenhum segredo fica no repositório.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="azure">
+  <span class="chip">Azure</span>
+  <h2>Decisões técnicas registradas</h2>
+  <p class="sub">Registro de decisões (DT) em <code>documentos/decisoes-tecnicas-nuvem.md</code>.</p>
+  <div class="grid g3">
+    <div class="card borda"><h3>DT-01 · App Service único</h3><p>Back-end e interface no mesmo serviço: uma origem HTTPS, sem CORS e sem outro serviço de hospedagem.</p></div>
+    <div class="card borda"><h3>DT-02 · Mexico Central</h3><p>A política <i>Allowed resource deployment regions</i> bloqueou <code>eastus</code>. Regiões permitidas: centralus, brazilsouth, italynorth, mexicocentral, francecentral.</p></div>
+    <div class="card borda"><h3>DT-03 · Plano Free F1</h3><p>Atende à demonstração acadêmica sem custo. Não é dimensionamento de produção.</p></div>
+    <div class="card borda"><h3>DT-04 · GitHub Actions + OIDC</h3><p>Build e deploy separados e rastreáveis; autenticação na Azure por identidade federada, sem senha no pipeline.</p></div>
+    <div class="card borda"><h3>DT-05 · Estáticos pelo Django</h3><p>O build copia HTML/CSS/JS para <code>templates</code> e <code>static</code> e executa <code>collectstatic</code>.</p></div>
+    <div class="card borda"><h3>DT-06/07 · Banco e segurança</h3><p>PostgreSQL por <code>DATABASE_URL</code> com TLS; segredos em App settings; <code>DEBUG=False</code> e hosts restritos.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="azure">
+  <span class="chip">Azure</span>
+  <h2>Pipeline de CI/CD</h2>
+  <p class="sub"><code>.github/workflows/main_app-inscricoes-academicas01.yml</code>, disparado por push na <code>main</code>.</p>
+  <div class="caixa" style="margin-bottom:16px">
+    <div class="rotulo">Job build · ubuntu-latest</div>
+    <div class="fluxo">
+      <div class="no"><b>1. Checkout</b>código do repositório</div>
+      <div class="seta">→</div>
+      <div class="no"><b>2. Python 3.13</b><code>pip install -r requirements.txt</code></div>
+      <div class="seta">→</div>
+      <div class="no"><b>3. Testes Django</b>SQLite em memória</div>
+      <div class="seta">→</div>
+      <div class="no"><b>4. Node 22</b>checagem e testes do JavaScript</div>
+      <div class="seta">→</div>
+      <div class="no"><b>5. Montagem</b>copia front-end + <code>collectstatic</code></div>
+      <div class="seta">→</div>
+      <div class="no"><b>6. Artefato</b>pasta <code>backend/</code></div>
+    </div>
+  </div>
+  <div class="caixa">
+    <div class="rotulo">Job deploy · depende do build</div>
+    <div class="fluxo">
+      <div class="no"><b>Condição</b>só executa em <code>Luc4s22/cloud-challenge-inscricoes</code></div>
+      <div class="seta">→</div>
+      <div class="no"><b>Baixa o artefato</b>do job de build</div>
+      <div class="seta">→</div>
+      <div class="no"><b>azure/login@v2</b>OIDC: client, tenant e subscription em secrets</div>
+      <div class="seta">→</div>
+      <div class="no"><b>azure/webapps-deploy@v3</b>slot Production</div>
+    </div>
+  </div>
+  <p class="small muted" style="margin-top:12px">A condição do deploy impede que forks publiquem na conta Azure pessoal usada no projeto.</p>
+</section>
+
+<section class="slide" data-bloco="azure">
+  <span class="chip">Azure</span>
+  <h2>Linha do tempo e situação atual</h2>
+  <p class="sub">Pipeline verde e <code>/health</code> respondendo não provam que o banco funciona; por isso a validação foi feita em etapas.</p>
+  <div class="grid g2">
+    <div class="card borda">
+      <h3>Evolução</h3>
+      <table class="small">
+        <tr><td style="width:80px"><b>05/11</b></td><td>App Service criado; deploys #2, #3 e #5 concluídos; <code>/health</code> → <code>{"status":"ok"}</code></td></tr>
+        <tr><td><b>05/11</b></td><td>Diagnóstico por SSH: aplicação usando SQLite e <code>/api/eventos</code> com erro 500</td></tr>
+        <tr><td><b>09/11</b></td><td>PostgreSQL conectado: <code>CONEXAO OK: 1</code>, migrações aplicadas</td></tr>
+        <tr><td><b>09/11</b></td><td><code>GET /api/eventos</code> retornando evento salvo no PostgreSQL</td></tr>
+        <tr><td><b>09/11</b></td><td>Login de organizador corrigido na Azure (<code>CSRF_TRUSTED_ORIGINS</code>)</td></tr>
+      </table>
+    </div>
+    <div class="card borda">
+      <h3>Situação</h3>
+      <p><span class="status ok">OK</span> Infraestrutura, deploy contínuo e conexão PostgreSQL</p>
+      <p><span class="status ok">OK</span> Segredos fora do Git; deploy restrito ao repositório da nuvem</p>
+      <p><span class="status pend">PENDENTE</span> Validar uma inscrição real em produção e a área restrita</p>
+      <p><span class="status pend">PENDENTE</span> Confirmar no Actions a publicação da versão mais recente</p>
+      <p><span class="status pend">RISCO</span> Free F1 com 1 worker: sem garantia de capacidade para produção</p>
+      <p class="small muted" style="margin-top:10px">Fonte: <code>documentos/checklist-entrega-nuvem.md</code></p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<!-- ============================ QA ======================================= -->
+<!-- ======================================================================= -->
+<section class="slide divisor" data-bloco="qa">
+  <div class="indice">BLOCO 4</div>
+  <h1>QA</h1>
+  <p>Testes em camadas e automação de ponta a ponta com Playwright e TypeScript, rodando contra o servidor real.</p>
+  <div class="resp">Matheus Goes · QA</div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>Estratégia de testes em camadas</h2>
+  <p class="sub">Cada camada responde a uma pergunta diferente.</p>
+  <table>
+    <tr><th style="width:250px">Camada</th><th style="width:150px">Ferramenta</th><th style="width:110px">Testes</th><th>O que garante</th></tr>
+    <tr><td><b>Unidade/integração do back-end</b></td><td>Django TestCase</td><td>25</td><td>Regras, permissões e CSRF por dentro da aplicação (<code>backend/api/tests.py</code>)</td></tr>
+    <tr><td><b>Lógica do front-end</b></td><td>Node + mocks</td><td>2</td><td>Scripts JS com respostas simuladas (<code>testes_frontend.mjs</code>)</td></tr>
+    <tr><td><b>API (contrato e negócio)</b></td><td>Playwright</td><td>88</td><td>Endpoints reais via HTTP: status, corpo, contrato, regras, segurança</td></tr>
+    <tr><td><b>Interface (E2E)</b></td><td>Playwright + Chromium</td><td>43</td><td>Jornadas do visitante e da organização no navegador</td></tr>
+  </table>
+  <div class="grid g3" style="flex:0 0 auto; margin-top:18px">
+    <div class="card"><h3>Independência</h3><p class="small">Cada teste cria os próprios dados pela API e os remove ao final; testes rodam em paralelo e em qualquer ordem.</p></div>
+    <div class="card"><h3>Comportamento real</h3><p class="small">Além do status HTTP, valida corpo, mensagens e efeitos: vagas recalculadas, registro não criado, dados não vazados.</p></div>
+    <div class="card"><h3>Honestidade</h3><p class="small">Defeitos ficam visíveis como “falha esperada”; nada é simulado para parecer aprovado.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>Arquitetura da automação Playwright</h2>
+  <p class="sub">Integrada ao repositório, com projetos separados para API e interface.</p>
+  <div class="grid g-55-45">
+    <div class="card borda">
+      <h3>Como uma execução funciona</h3>
+      <ol class="passos">
+        <li>O Playwright sobe o Django numa porta dedicada com <b>banco SQLite descartável</b>, nunca o PostgreSQL</li>
+        <li>Aplica as migrações e cria um <b>organizador temporário</b> com senha aleatória</li>
+        <li>Faz login uma vez por worker (sessão + CSRF) e reaproveita os cookies</li>
+        <li>Roda <code>api</code> e <code>interface</code> em paralelo, com 7 workers</li>
+        <li>Gera relatórios <b>HTML</b> e <b>JUnit</b>, além de screenshot, vídeo e trace das falhas</li>
+      </ol>
+    </div>
+<pre>tests/
+├── api/
+│   ├── specs/      <span class="c"># 6 arquivos por funcionalidade</span>
+│   ├── clients/    <span class="c"># um cliente HTTP por recurso</span>
+│   ├── fixtures/   <span class="c"># sessões + criação/limpeza</span>
+│   ├── data/       <span class="c"># factories e dados inválidos</span>
+│   └── schemas/    <span class="c"># contratos (zod)</span>
+├── interface/
+│   ├── specs/      <span class="c"># 6 arquivos de jornadas</span>
+│   ├── pages/      <span class="c"># Page Objects</span>
+│   ├── components/ <span class="c"># card, formulário, tabela</span>
+│   └── fixtures/
+└── shared/         <span class="c"># config, tipos, servidor</span></pre>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>O que está coberto</h2>
+  <p class="sub">Cenários positivos, negativos e de borda baseados no código real.</p>
+  <div class="grid g2">
+    <div class="card borda">
+      <h3>API: 88 testes</h3>
+      <ul>
+        <li>Contrato estrito das respostas (campos, tipos, datas com fuso)</li>
+        <li>Validação de cada campo obrigatório, capacidade (0, negativa, decimal, texto) e datas</li>
+        <li>Duplicidade (inclusive com e-mail em maiúsculas), vagas esgotadas, evento iniciado</li>
+        <li><b>Concorrência:</b> 5 pedidos simultâneos pela última vaga → exatamente 1 confirmado</li>
+        <li>Cancelamento libera a vaga e permite reinscrição</li>
+        <li>403 sem login, 403 sem CSRF, nenhum e-mail vazado ao visitante</li>
+      </ul>
+    </div>
+    <div class="card borda">
+      <h3>Interface: 43 testes</h3>
+      <ul>
+        <li>Carregamento, menu e estados de carregando, vazio e erro da API</li>
+        <li>Cards com dados reais, vagas, botões bloqueados, busca</li>
+        <li>Validação HTML5 do formulário e estado “Confirmando...”</li>
+        <li><b>Jornada completa:</b> inscrição → comprovante → conferência na API → vagas atualizadas</li>
+        <li>Login e logout do organizador, pesquisa, filtro e atualização do painel</li>
+        <li>Comprovante expirado (&gt; 30 min) é descartado</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>Resultados da execução</h2>
+  <p class="sub">Execução local completa, com o servidor real e 7 workers em paralelo.</p>
+  <div class="grid g4" style="flex:0 0 auto; margin-bottom:20px">
+    <div class="card"><div class="num">131</div><div class="num-label">testes aprovados de 131</div></div>
+    <div class="card"><div class="num">~1,5<span style="font-size:26px"> min</span></div><div class="num-label">suíte completa (API + interface)</div></div>
+    <div class="card"><div class="num">129</div><div class="num-label">de 129 aprovados na interface rodada 3× seguidas</div></div>
+    <div class="card"><div class="num">25</div><div class="num-label">testes Django continuam aprovados</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card borda">
+      <h3>Comandos</h3>
+      <pre style="font-size:14px">npm test            <span class="c"># tudo</span>
+npm run test:api    <span class="c"># só API</span>
+npm run test:ui     <span class="c"># só interface</span>
+npm run test:demo   <span class="c"># modo apresentação</span>
+npm run test:report <span class="c"># relatório HTML</span></pre>
+    </div>
+    <div class="card borda">
+      <h3>Relatórios</h3>
+      <ul>
+        <li><b>HTML:</b> navegação por teste, passos e anexos</li>
+        <li><b>JUnit XML:</b> pronto para publicação no CI/CD</li>
+        <li><b>Evidências:</b> screenshot e vídeo em falhas; trace na primeira repetição</li>
+        <li>Re-execução automática no CI (2 tentativas)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>Defeitos e riscos encontrados</h2>
+  <p class="sub">Achados reais da automação, com causa identificada e correção sugerida.</p>
+  <table>
+    <tr><th style="width:44px">#</th><th style="width:330px">Achado</th><th>Causa</th><th style="width:300px">Correção sugerida</th></tr>
+    <tr><td>1</td><td><span class="status bug">DEFEITO</span> <code>GET /api/eventos</code> não ordena por data de início</td><td>A view usa <code>annotate(Count)</code>; o Django descarta o <code>Meta.ordering</code> com <code>GROUP BY</code>, e o SQL sai sem <code>ORDER BY</code></td><td><code>.order_by("data_inicio")</code> na view</td></tr>
+    <tr><td>2</td><td><span class="status bug">DEFEITO</span> Acentos quebrados na tabela da home (“InscriÃ§Ãµes”)</td><td>Dupla codificação UTF-8 em <code>index.html</code> e <code>script.js</code></td><td>Regravar os trechos em UTF-8</td></tr>
+    <tr><td>3</td><td><span class="status bug">DEFEITO</span> <code>testes_frontend.mjs</code> falha</td><td>Mock desatualizado: falta o elemento <code>filtrar-evento</code>. É o mesmo comando do passo “Verificar JavaScript” do pipeline</td><td>Atualizar o mock do teste</td></tr>
+    <tr><td>4</td><td><span class="status pend">RISCO</span> Tabela de inscritos inteira some se um evento for excluído durante o carregamento</td><td><code>Promise.all</code>: um único 404 derruba todas as consultas</td><td><code>Promise.allSettled</code> ou ignorar 404</td></tr>
+  </table>
+  <p class="small muted" style="margin-top:12px">Os defeitos 1 e 2 têm testes marcados como “falha esperada”: quando forem corrigidos, o Playwright avisa para remover a marcação.</p>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>Desafios técnicos resolvidos</h2>
+  <p class="sub">Problemas de ambiente investigados por medição, sem aumentar tempos limite às cegas.</p>
+  <div class="grid g3">
+    <div class="card borda">
+      <h3>Páginas levando 3 s</h3>
+      <p>Pelo <code>curl</code> o servidor respondia em milissegundos, mas no navegador cada página demorava ~3 s.</p>
+      <p><b>Causa:</b> o cabeçalho <code>Cross-Origin-Opener-Policy</code> força um processo novo no Chromium, e o antivírus da máquina deixa isso lento.</p>
+      <p><b>Solução:</b> flag no navegador de teste, de 3.000 ms para 27 ms; a presença do cabeçalho segue validada nos testes de API.</p>
+    </div>
+    <div class="card borda">
+      <h3>Concorrência no SQLite</h3>
+      <p>O SQLite ignora o <code>select_for_update</code> do PostgreSQL e gerava “database is locked” com testes paralelos.</p>
+      <p><b>Solução:</b> <code>transaction_mode=IMMEDIATE</code> na <code>DATABASE_URL</code> de teste, sem mudar a aplicação.</p>
+    </div>
+    <div class="card borda">
+      <h3>Testes interferindo entre si</h3>
+      <p>A limpeza de um teste apagava eventos que outro teste ainda estava carregando.</p>
+      <p><b>Solução:</b> dados únicos por teste e, nas tabelas de inscritos, a página só enxerga os eventos do próprio teste (resposta real da API, filtrada).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA · Vídeo</span>
+  <h2>Interface gráfica do Playwright: <span class="destaque">testes de API</span></h2>
+  <p class="sub">UI Mode executando os 88 testes de API contra o servidor Django real.</p>
+  <div class="demo-layout">
+    <video class="video" src="videos/ui-mode-api.webm" controls muted playsinline preload="metadata" data-auto></video>
+    <div class="card borda">
+      <h3>O que observar</h3>
+      <ol class="passos">
+        <li>Projeto <code>api</code> selecionado na árvore de testes</li>
+        <li>Execução em paralelo, com o contador ao vivo</li>
+        <li>Resultado: <b>88/88</b> aprovados</li>
+        <li>Concorrência: 5 inscrições disputando a última vaga</li>
+        <li>Duplicidade: requisições reais e a resposta <code>409 INSCRICAO_DUPLICADA</code></li>
+        <li>Segurança: visitante recebe 403 sem dados pessoais</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA · Vídeo</span>
+  <h2>Interface gráfica do Playwright: <span class="destaque">testes de Interface</span></h2>
+  <p class="sub">UI Mode executando o roteiro <code>@apresentacao</code> no Chromium, com a tela real da aplicação em cada passo.</p>
+  <div class="demo-layout">
+    <video class="video" src="videos/ui-mode-interface.webm" controls muted playsinline preload="metadata" data-auto></video>
+    <div class="card borda">
+      <h3>O que observar</h3>
+      <ol class="passos">
+        <li>Troca para o projeto <code>interface</code> e filtro pela tag</li>
+        <li>9 jornadas executadas: <b>9/9</b> aprovadas</li>
+        <li>Jornada do visitante, ação por ação: cada passo mostra o snapshot da página real</li>
+        <li>Organizador: login no Django Admin, painel de inscritos e logout</li>
+      </ol>
+      <p class="small muted" style="margin-top:8px">A senha que aparece é fictícia e só existe no banco descartável da gravação.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA · Vídeo</span>
+  <h2>Jornadas executadas na <span class="destaque">aplicação real</span></h2>
+  <p class="sub">Gravação do navegador conduzido pelos testes, em câmera lenta; a faixa inferior mostra o cenário.</p>
+  <div class="grid g2" style="align-items:start">
+    <div>
+      <video class="video" src="videos/interface-jornada-inscricao.webm" controls muted playsinline preload="metadata" data-auto></video>
+      <p class="video-legenda"><b>Visitante:</b> escolhe o evento, preenche nome e e-mail e recebe o comprovante</p>
+    </div>
+    <div>
+      <video class="video" src="videos/interface-login-organizador.webm" controls muted playsinline preload="metadata" data-auto></video>
+      <p class="video-legenda"><b>Organizador:</b> login, painel restrito de inscritos e logout</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA · Vídeo</span>
+  <h2>Regras de negócio <span class="destaque">visíveis na tela</span></h2>
+  <p class="sub">Cenários negativos e o painel da organização, executados contra o servidor real.</p>
+  <div class="grid g2" style="align-items:start">
+    <div>
+      <video class="video" src="videos/interface-email-duplicado.webm" controls muted playsinline preload="metadata" data-auto></video>
+      <p class="video-legenda"><b>Duplicidade:</b> o mesmo e-mail no mesmo evento é recusado pela API e a mensagem aparece no formulário</p>
+    </div>
+    <div>
+      <video class="video" src="videos/interface-filtro-painel.webm" controls muted playsinline preload="metadata" data-auto></video>
+      <p class="video-legenda"><b>Painel:</b> o filtro por evento mostra só as inscrições daquele evento</p>
+    </div>
+  </div>
+  <p class="small muted" style="margin-top:14px">Outros vídeos em <code>docs/videos/</code>: e-mail inválido, evento lotado, busca, cartão do evento e página inicial. Para regravar: <code>npm run videos:apresentacao</code>.</p>
+</section>
+
+<section class="slide" data-bloco="qa">
+  <span class="chip">QA</span>
+  <h2>Demonstração ao vivo</h2>
+  <p class="sub"><code>npm run test:demo</code> · navegador visível, um teste por vez, em câmera lenta.</p>
+  <div class="grid g2">
+    <div class="card borda">
+      <h3>Roteiro (9 cenários, ~1,5 min)</h3>
+      <ol class="passos" style="margin-top:6px">
+        <li>Cartão de evento com dados reais</li>
+        <li>Evento lotado: “Vagas esgotadas”</li>
+        <li>Busca de eventos por título</li>
+        <li>Carregamento da página inicial</li>
+        <li>E-mail inválido barrado</li>
+      </ol>
+    </div>
+    <div class="card borda">
+      <h3>&nbsp;</h3>
+      <ol class="passos" start="6" style="margin-top:6px; counter-reset: passo 5">
+        <li><b>Jornada completa até o comprovante</b></li>
+        <li>E-mail duplicado: mensagem de erro</li>
+        <li><b>Login, painel e logout do organizador</b></li>
+        <li>Filtro de inscritos por evento</li>
+      </ol>
+      <p class="small muted" style="margin-top:12px">Ajuste de velocidade: <code>PW_SLOW_MO</code> (ms por ação) e <code>PW_DEMO_PAUSE</code> (pausa final).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRÓXIMOS PASSOS ============================ -->
+<section class="slide">
+  <span class="chip">Encerramento</span>
+  <h2>Próximos passos</h2>
+  <p class="sub">Priorizados por área.</p>
+  <div class="grid g4">
+    <div class="card borda" style="--accent:var(--front)"><h3>Front-end</h3><ul><li>Corrigir a codificação da tabela da home</li><li>Atualizar o teste <code>testes_frontend.mjs</code></li><li>Tabela tolerante a falha de um evento</li></ul></div>
+    <div class="card borda" style="--accent:var(--back)"><h3>Back-end</h3><ul><li>Ordenar <code>/api/eventos</code> por data</li><li>Limitação de requisições na inscrição pública</li><li>Confirmação de e-mail</li></ul></div>
+    <div class="card borda" style="--accent:var(--azure)"><h3>Azure</h3><ul><li>Validar inscrição real em produção</li><li>Avaliar plano além do Free F1</li><li>Revisar logs e monitoramento</li></ul></div>
+    <div class="card borda" style="--accent:var(--qa)"><h3>QA</h3><ul><li>Playwright no GitHub Actions com relatório JUnit</li><li>Rodar a suíte em homologação com PostgreSQL</li><li>Firefox, WebKit e acessibilidade</li></ul></div>
+  </div>
+</section>
+
+<section class="slide capa">
+  <h1>Obrigado!</h1>
+  <p class="sub">Perguntas?</p>
+  <div class="blocos-capa">
+    <span><i style="background:#2dd4bf"></i>Front-end</span>
+    <span><i style="background:#a5b4fc"></i>Back-end</span>
+    <span><i style="background:#7cc4ff"></i>Azure</span>
+    <span><i style="background:#fbbf24"></i>QA</span>
+  </div>
+  <p style="margin-top:40px; color:#d5eadc; font-size:18px">Cloud Challenge · Semana Acadêmica · Faculdade Senac</p>
+</section>
+
+</div>
+
+<div id="progresso"></div>
+<div id="ajuda">← → navegar · F tela cheia</div>
+
+<script>
+(function () {
+  'use strict';
+  const stage = document.getElementById('stage');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const barra = document.getElementById('progresso');
+  const nomes = { front: 'Front-end', back: 'Back-end', azure: 'Azure', qa: 'QA' };
+  const cores = { front: '#0f766e', back: '#4338ca', azure: '#0078d4', qa: '#b45309' };
+  let atual = 0;
+
+  slides.forEach((slide, i) => {
+    const rodape = document.createElement('div');
+    rodape.className = 'rodape';
+    const esquerda = document.createElement('span');
+    esquerda.textContent = 'Cloud Challenge · Inscrições da Semana Acadêmica' +
+      (slide.dataset.bloco ? ' · ' + nomes[slide.dataset.bloco] : '');
+    const direita = document.createElement('span');
+    direita.textContent = (i + 1) + ' / ' + slides.length;
+    rodape.append(esquerda, direita);
+    slide.appendChild(rodape);
+  });
+
+  const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Marca, em ordem de leitura, os elementos que entram em cascata em cada slide.
+  const ANIMAVEIS = [
+    '.chip', '.indice', 'h1', 'h2', '.sub', '.resp', '.blocos-capa > span', '.equipe-titulo', '.equipe-nomes > span',
+    '.grid > *', '.card', '.caixa', '.fluxo > *', '.no', '.seta',
+    'table tr', '.passos li', 'pre', '.video', '.video-legenda', '.num', '.slide > p'
+  ].join(', ');
+  slides.forEach(slide => {
+    let i = 0;
+    slide.querySelectorAll(ANIMAVEIS).forEach(el => {
+      if (el.closest('.rodape')) return;
+      el.classList.add('anim');
+      if (el.matches('.seta')) el.classList.add('a-seta');
+      else if (el.matches('table tr')) el.classList.add('a-deslizar');
+      else if (el.matches('.no, .blocos-capa > span, .video, .num, .chip')) el.classList.add('a-surgir');
+      if (el.matches('.caixa')) el.classList.add('viva');
+      el.style.setProperty('--i', Math.min(i++, 16));
+    });
+  });
+
+  // Números inteiros dos cartões contam de 0 até o valor final.
+  function contarNumeros(slide) {
+    slide.querySelectorAll('.num').forEach(el => {
+      const texto = el.firstChild;
+      if (!texto || texto.nodeType !== Node.TEXT_NODE) return;
+      const final = el.dataset.final ?? texto.textContent.trim();
+      el.dataset.final = final;
+      if (!/^\d+$/.test(final) || reduzirMovimento) { texto.textContent = final; return; }
+      const alvo = Number(final);
+      const inicio = performance.now();
+      const id = (el.dataset.contagem = String(Math.random()));
+      texto.textContent = '0';
+      const passo = agora => {
+        if (el.dataset.contagem !== id) return;
+        const t = Math.min(1, Math.max(0, (agora - inicio - 350) / 1200));
+        texto.textContent = String(Math.round(alvo * (1 - Math.pow(1 - t, 3))));
+        if (t < 1) requestAnimationFrame(passo);
+      };
+      requestAnimationFrame(passo);
+    });
+  }
+
+  function escalar() {
+    const escala = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + escala + ')';
+  }
+
+  function mostrar(indice) {
+    const destino = Math.max(0, Math.min(slides.length - 1, indice));
+    // Avançar: entra pela direita; voltar: entra pela esquerda.
+    stage.style.setProperty('--dx', (destino < atual ? -48 : 48) + 'px');
+    const mudou = destino !== atual || !slides[destino].classList.contains('active');
+    atual = destino;
+    slides.forEach((slide, i) => slide.classList.toggle('active', i === atual));
+    if (mudou) contarNumeros(slides[atual]);
+    // Vídeos: pausam ao sair do slide e começam do início ao entrar.
+    document.querySelectorAll('video').forEach(video => video.pause());
+    slides[atual].querySelectorAll('video[data-auto]').forEach(video => {
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    });
+    barra.style.width = ((atual + 1) / slides.length * 100) + '%';
+    barra.style.background = cores[slides[atual].dataset.bloco] || '#215b39';
+    if (location.hash !== '#' + (atual + 1)) history.replaceState(null, '', '#' + (atual + 1));
+  }
+
+  document.addEventListener('keydown', evento => {
+    const proximo = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'];
+    const anterior = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'];
+    if (proximo.includes(evento.key)) { evento.preventDefault(); mostrar(atual + 1); }
+    else if (anterior.includes(evento.key)) { evento.preventDefault(); mostrar(atual - 1); }
+    else if (evento.key === 'Home') mostrar(0);
+    else if (evento.key === 'End') mostrar(slides.length - 1);
+    else if (evento.key === 'f' || evento.key === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(() => {});
+    }
+  });
+
+  document.addEventListener('click', evento => {
+    if (evento.target.closest('a, button, pre, code, video')) return;
+    mostrar(evento.clientX > window.innerWidth / 3 ? atual + 1 : atual - 1);
+  });
+
+  window.addEventListener('resize', escalar);
+  window.addEventListener('hashchange', () => mostrar(Number(location.hash.slice(1)) - 1 || 0));
+  escalar();
+  mostrar(Number(location.hash.slice(1)) - 1 || 0);
+  setTimeout(() => document.getElementById('ajuda').classList.add('oculta'), 5000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "cloud-challenge-inscricoes-testes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automação de testes de API e Interface (Playwright) da aplicação de inscrições da Semana Acadêmica.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=interface",
+    "test:headed": "playwright test --project=interface --headed",
+    "test:debug": "playwright test --debug",
+    "test:demo": "node tests/shared/scripts/apresentacao.mjs",
+    "test:gui": "playwright test --ui",
+    "videos:apresentacao": "node tests/shared/scripts/gravar-videos.mjs",
+    "test:report": "playwright show-report test-reports/html",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "dotenv": "^18.0.10",
+    "typescript": "^7.0.2",
+    "zod": "^4.6.7"
+  }
+}

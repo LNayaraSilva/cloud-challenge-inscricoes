@@ -25,3 +25,12 @@ Thumbs.db
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Node / Playwright (automação de testes)
+node_modules/
+test-results/
+test-reports/
+playwright-report/
+blob-report/
+playwright/.cache/
+tests/.e2e/
