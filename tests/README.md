@@ -322,6 +322,15 @@ passed"* — remova então o `test.fail`.
 
 **Limitações**
 
+- **Depende da integração do front-end com a API.** A automação foi escrita
+  contra a versão integrada do fork `Luc4s22/cloud-challenge-inscricoes`
+  (páginas `/organizacao/` e `/inscricao-confirmada/`, tabela de inscritos,
+  permissões de organizador e templates lidos de `frontend/`). Na `main` deste
+  repositório, em 19/11/2026, esses commits ainda não existiam: 81 de 88 testes
+  de API passavam (os 7 restantes são de permissão) e só 2 de 43 de interface,
+  porque `/` responde 500 (`TemplateDoesNotExist: index.html`) ao rodar
+  localmente. Os testes passam integralmente depois que esse trabalho for
+  integrado à `main`.
 - **Usuário autenticado sem `is_staff`:** o único login disponível é o do Django
   Admin, que recusa contas sem `is_staff`. O cenário "usuário comum recebe 403"
   continua coberto apenas pelos testes Django (`force_login`).
