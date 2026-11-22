@@ -1,4 +1,5 @@
 import json
+import logging
 from json import JSONDecodeError
 
 from django.core.exceptions import ValidationError
@@ -12,7 +13,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
 from .models import Evento, Inscricao
+from .seguranca import codigo_confere, eh_comissao, verificar_comissao
 from .serializers import evento_para_dict, inscricao_para_dict
+
+logger = logging.getLogger("api.seguranca")
 
 
 def resposta_erro(codigo, mensagem, status, campos=None):
@@ -174,6 +178,12 @@ def eventos(request):
             safe=False,
         )
 
+    # Cadastrar evento e tarefa da comissao organizadora.
+    bloqueio = verificar_comissao(request)
+
+    if bloqueio:
+        return bloqueio
+
     dados, erro = ler_json(request)
 
     if erro:
@@ -249,9 +259,13 @@ def inscricoes_evento(request, evento_id):
             evento_id=evento_id
         )
 
+        # Lista publica: nome e e-mail MASCARADO (dado pessoal).
+        # Com o token da comissao: e-mail completo.
+        email_completo = eh_comissao(request)
+
         return JsonResponse(
             [
-                inscricao_para_dict(inscricao)
+                inscricao_para_dict(inscricao, email_completo)
                 for inscricao in inscricoes
             ],
             safe=False,
@@ -329,23 +343,40 @@ def inscricoes_evento(request, evento_id):
             409,
         )
 
-    return JsonResponse(
-        inscricao_para_dict(inscricao),
-        status=201,
-    )
+    # So aqui o codigo de cancelamento e devolvido: quem se inscreveu guarda
+    # para poder cancelar depois (protecao contra IDOR).
+    resposta = inscricao_para_dict(inscricao)
+    resposta["codigo_cancelamento"] = str(inscricao.codigo_cancelamento)
+
+    return JsonResponse(resposta, status=201)
 
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def cancelar_inscricao(request, inscricao_id):
+    nao_encontrada = resposta_erro(
+        "INSCRICAO_NAO_ENCONTRADA",
+        "Inscrição não encontrada.",
+        404,
+    )
+
     try:
         inscricao = Inscricao.objects.get(pk=inscricao_id)
     except Inscricao.DoesNotExist:
-        return resposta_erro(
-            "INSCRICAO_NAO_ENCONTRADA",
-            "Inscrição não encontrada.",
-            404,
+        return nao_encontrada
+
+    # PROTECAO CONTRA IDOR: so cancela quem tem o codigo desta inscricao
+    # (recebido na hora de se inscrever) ou a comissao. Sem isso, qualquer
+    # pessoa cancelaria a inscricao dos outros trocando o numero na URL.
+    codigo = request.headers.get("X-Codigo-Cancelamento", "")
+
+    if not (eh_comissao(request) or codigo_confere(inscricao, codigo)):
+        logger.warning(
+            "IDOR bloqueado: cancelamento da inscricao %s sem o codigo certo ip=%s",
+            inscricao_id, request.META.get("REMOTE_ADDR", "?"),
         )
+        # 404, igual a "nao existe": quem tenta adivinhar IDs nao descobre nada.
+        return nao_encontrada
 
     inscricao.delete()
 
