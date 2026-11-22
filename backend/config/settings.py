@@ -36,6 +36,16 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
+# Cabecalho extra usado no cancelamento (protecao contra IDOR).
+from corsheaders.defaults import default_headers  # noqa: E402
+
+CORS_ALLOW_HEADERS = (*default_headers, "x-codigo-cancelamento")
+
+# Token da comissao organizadora (cadastrar evento e ver e-mails dos inscritos).
+# Fica so na variavel de ambiente: App Service -> Variaveis de ambiente, ou .env local.
+# Vazio = as rotas da comissao ficam bloqueadas (503).
+COMISSAO_TOKEN = os.getenv("COMISSAO_TOKEN", "")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

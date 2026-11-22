@@ -1,7 +1,7 @@
 import json
 from datetime import timedelta
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -32,6 +32,11 @@ class HealthEndpointTests(TestCase):
         )
 
 
+TOKEN = "token-da-comissao-de-teste"
+COMISSAO = {"HTTP_AUTHORIZATION": f"Bearer {TOKEN}"}
+
+
+@override_settings(COMISSAO_TOKEN=TOKEN)
 class EventosEndpointTests(TestCase):
     def dados_evento(self):
         inicio = timezone.now() + timedelta(days=10)
@@ -52,6 +57,7 @@ class EventosEndpointTests(TestCase):
             reverse("eventos"),
             data=json.dumps(self.dados_evento()),
             content_type="application/json",
+            **COMISSAO,
         )
 
         self.assertEqual(response.status_code, 201)
@@ -73,6 +79,7 @@ class EventosEndpointTests(TestCase):
             reverse("eventos"),
             data=json.dumps(dados),
             content_type="application/json",
+            **COMISSAO,
         )
 
         self.assertEqual(response.status_code, 400)
@@ -89,6 +96,7 @@ class EventosEndpointTests(TestCase):
             reverse("eventos"),
             data=json.dumps(dados),
             content_type="application/json",
+            **COMISSAO,
         )
 
         self.assertEqual(response.status_code, 400)
@@ -137,6 +145,7 @@ class EventosEndpointTests(TestCase):
         )
 
 
+@override_settings(COMISSAO_TOKEN=TOKEN)
 class InscricoesEndpointTests(TestCase):
     def setUp(self):
         inicio = timezone.now() + timedelta(days=5)
@@ -261,6 +270,12 @@ class InscricoesEndpointTests(TestCase):
             response.json()[0]["participante"]["nome"],
             "Maria Silva",
         )
+        # Lista publica: e-mail mascarado e nunca o codigo de cancelamento.
+        self.assertEqual(
+            response.json()[0]["participante"]["email"],
+            "m***@example.com",
+        )
+        self.assertNotIn("codigo_cancelamento", response.json()[0])
 
     def test_cancelar_inscricao_libera_vaga(self):
         response = self.inscrever()
@@ -270,7 +285,8 @@ class InscricoesEndpointTests(TestCase):
             reverse(
                 "cancelar_inscricao",
                 kwargs={"inscricao_id": inscricao_id},
-            )
+            ),
+            HTTP_X_CODIGO_CANCELAMENTO=response.json()["codigo_cancelamento"],
         )
 
         nova_inscricao = self.inscrever(
@@ -295,3 +311,111 @@ class InscricoesEndpointTests(TestCase):
             response.json()["erro"],
             "INSCRICAO_NAO_ENCONTRADA",
         )
+
+
+@override_settings(COMISSAO_TOKEN=TOKEN)
+class SegurancaDasRotasTests(TestCase):
+    """Rotas da comissao protegidas por token e protecao contra IDOR no cancelamento."""
+
+    def setUp(self):
+        inicio = timezone.now() + timedelta(days=5)
+        self.evento = Evento.objects.create(
+            titulo="Oficina", descricao="Descrição", palestrante="Professor",
+            local="Laboratório", data_inicio=inicio,
+            data_fim=inicio + timedelta(hours=2), capacidade=10,
+        )
+
+    def dados_evento(self):
+        inicio = timezone.now() + timedelta(days=10)
+        return {
+            "titulo": "Evento", "descricao": "Descrição", "palestrante": "Pessoa",
+            "local": "Sala", "data_inicio": inicio.isoformat(),
+            "data_fim": (inicio + timedelta(hours=1)).isoformat(), "capacidade": 5,
+        }
+
+    def inscrever(self, email):
+        return self.client.post(
+            reverse("inscricoes_evento", kwargs={"evento_id": self.evento.id}),
+            data=json.dumps({"participante": {"nome": "Pessoa", "email": email}}),
+            content_type="application/json",
+        )
+
+    def cancelar(self, inscricao_id, **cabecalhos):
+        return self.client.delete(
+            reverse("cancelar_inscricao", kwargs={"inscricao_id": inscricao_id}),
+            **cabecalhos,
+        )
+
+    # --- Rotas da comissao ----------------------------------------------------
+
+    def test_cadastrar_evento_sem_token_e_recusado(self):
+        response = self.client.post(
+            reverse("eventos"), data=json.dumps(self.dados_evento()),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["erro"], "NAO_AUTORIZADO")
+        self.assertEqual(Evento.objects.count(), 1)
+
+    def test_cadastrar_evento_com_token_errado_e_recusado(self):
+        response = self.client.post(
+            reverse("eventos"), data=json.dumps(self.dados_evento()),
+            content_type="application/json", HTTP_AUTHORIZATION="Bearer chute",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    @override_settings(COMISSAO_TOKEN="")
+    def test_sem_token_configurado_a_rota_fica_bloqueada(self):
+        response = self.client.post(
+            reverse("eventos"), data=json.dumps(self.dados_evento()),
+            content_type="application/json", **COMISSAO,
+        )
+        self.assertEqual(response.status_code, 503)
+
+    def test_consultas_publicas_continuam_abertas(self):
+        self.assertEqual(self.client.get(reverse("eventos")).status_code, 200)
+        self.assertEqual(self.inscrever("ana@exemplo.com").status_code, 201)
+
+    def test_comissao_ve_o_email_completo(self):
+        self.inscrever("ana.souza@exemplo.com")
+        url = reverse("inscricoes_evento", kwargs={"evento_id": self.evento.id})
+        publico = self.client.get(url).json()[0]["participante"]["email"]
+        comissao = self.client.get(url, **COMISSAO).json()[0]["participante"]["email"]
+        self.assertEqual(publico, "a***@exemplo.com")
+        self.assertEqual(comissao, "ana.souza@exemplo.com")
+
+    # --- IDOR no cancelamento ---------------------------------------------------
+
+    def test_nao_cancela_a_inscricao_de_outra_pessoa_trocando_o_id(self):
+        ana = self.inscrever("ana@exemplo.com").json()
+        bruno = self.inscrever("bruno@exemplo.com").json()
+
+        # Bruno tenta cancelar a inscricao da Ana usando o PROPRIO codigo.
+        response = self.cancelar(ana["id"], HTTP_X_CODIGO_CANCELAMENTO=bruno["codigo_cancelamento"])
+        self.assertEqual(response.status_code, 404)
+        # Sem codigo nenhum, tambem nao.
+        self.assertEqual(self.cancelar(ana["id"]).status_code, 404)
+        self.assertTrue(Inscricao.objects.filter(pk=ana["id"]).exists())
+
+    def test_resposta_igual_para_inscricao_alheia_e_inexistente(self):
+        ana = self.inscrever("ana@exemplo.com").json()
+        alheia = self.cancelar(ana["id"])
+        inexistente = self.cancelar(999)
+        self.assertEqual(alheia.status_code, inexistente.status_code)
+        self.assertEqual(alheia.json(), inexistente.json())
+
+    def test_dono_cancela_com_o_proprio_codigo(self):
+        ana = self.inscrever("ana@exemplo.com").json()
+        response = self.cancelar(ana["id"], HTTP_X_CODIGO_CANCELAMENTO=ana["codigo_cancelamento"])
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Inscricao.objects.filter(pk=ana["id"]).exists())
+
+    def test_comissao_cancela_qualquer_inscricao(self):
+        ana = self.inscrever("ana@exemplo.com").json()
+        self.assertEqual(self.cancelar(ana["id"], **COMISSAO).status_code, 204)
+
+    def test_tentativa_de_idor_vai_para_o_log(self):
+        ana = self.inscrever("ana@exemplo.com").json()
+        with self.assertLogs("api.seguranca", level="WARNING") as log:
+            self.cancelar(ana["id"])
+        self.assertIn("IDOR bloqueado", log.output[0])

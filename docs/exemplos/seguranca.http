@@ -1,0 +1,65 @@
+### =====================================================================
+### Testes de segurança da API (extensão "REST Client" do VS Code)
+### Preencha @token com o COMISSAO_TOKEN (NÃO commite com o valor preenchido).
+### Rode na ordem: os IDs e códigos passam sozinhos de uma requisição para a outra.
+### =====================================================================
+
+@base = http://127.0.0.1:8000
+# API publicada: troque pela URL do App Service (sem barra no final)
+
+@token =
+
+@evento_id = {{evento.response.body.$.id}}
+@ana_id = {{ana.response.body.$.id}}
+@ana_codigo = {{ana.response.body.$.codigo_cancelamento}}
+@bruno_codigo = {{bruno.response.body.$.codigo_cancelamento}}
+
+
+### 1. Cadastrar evento SEM token -> 401
+POST {{base}}/api/eventos
+Content-Type: application/json
+
+{"titulo": "Teste", "descricao": "Teste", "palestrante": "Pessoa", "local": "Sala", "data_inicio": "2027-03-10T19:00:00-03:00", "data_fim": "2027-03-10T21:00:00-03:00", "capacidade": 10}
+
+### 2. Cadastrar evento COM token -> 201
+# @name evento
+POST {{base}}/api/eventos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"titulo": "Oficina de segurança", "descricao": "Teste", "palestrante": "Pessoa", "local": "Sala", "data_inicio": "2027-03-10T19:00:00-03:00", "data_fim": "2027-03-10T21:00:00-03:00", "capacidade": 10}
+
+### 3. Ana se inscreve -> 201 com codigo_cancelamento
+# @name ana
+POST {{base}}/api/eventos/{{evento_id}}/inscricoes
+Content-Type: application/json
+
+{"participante": {"nome": "Ana", "email": "ana.souza@exemplo.com"}}
+
+### 4. Bruno se inscreve -> 201 com OUTRO codigo_cancelamento
+# @name bruno
+POST {{base}}/api/eventos/{{evento_id}}/inscricoes
+Content-Type: application/json
+
+{"participante": {"nome": "Bruno", "email": "bruno@exemplo.com"}}
+
+### 5. Lista pública -> e-mails mascarados, sem códigos
+GET {{base}}/api/eventos/{{evento_id}}/inscricoes
+
+### 6. Lista da comissão -> e-mails completos
+GET {{base}}/api/eventos/{{evento_id}}/inscricoes
+Authorization: Bearer {{token}}
+
+### 7. IDOR: cancelar a inscrição da Ana SEM código -> 404
+DELETE {{base}}/api/inscricoes/{{ana_id}}
+
+### 8. IDOR: Bruno tenta cancelar a da Ana com o código DELE -> 404
+DELETE {{base}}/api/inscricoes/{{ana_id}}
+X-Codigo-Cancelamento: {{bruno_codigo}}
+
+### 9. Inscrição que não existe -> 404 com a MESMA resposta do 7 e do 8
+DELETE {{base}}/api/inscricoes/999999
+
+### 10. Ana cancela com o código DELA -> 204
+DELETE {{base}}/api/inscricoes/{{ana_id}}
+X-Codigo-Cancelamento: {{ana_codigo}}
