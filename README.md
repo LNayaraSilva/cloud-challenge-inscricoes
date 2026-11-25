@@ -136,14 +136,6 @@ O SQLite será utilizado automaticamente se `DATABASE_URL` não estiver definida
 DATABASE_URL=postgresql://usuario:senha@localhost:5432/inscricoes
 ```
 
-Para as rotas da comissão (cadastrar evento), defina também o token:
-
-```env
-COMISSAO_TOKEN=gere-um-valor-longo-e-aleatorio
-```
-
-Para gerar um valor: `python -c "import secrets; print(secrets.token_urlsafe(32))"`. No Azure, cadastre `COMISSAO_TOKEN` em **App Service → Configurações → Variáveis de ambiente**.
-
 > Nunca publique senhas, chaves secretas ou o arquivo `.env` no GitHub.
 
 ### 5. Aplicar migrações
@@ -170,15 +162,15 @@ A interface pode ser explorada com os dados simulados presentes em `frontend/scr
 
 ## 🔌 Endpoints da API
 
-| Método | Rota | Finalidade | Acesso |
-|---|---|---|---|
-| `GET` | `/health` | Verificar o funcionamento da aplicação | Público |
-| `GET` | `/api/eventos` | Listar eventos | Público |
-| `POST` | `/api/eventos` | Cadastrar evento | Comissão (token) |
-| `GET` | `/api/eventos/{id}` | Consultar detalhes | Público |
-| `GET` | `/api/eventos/{id}/inscricoes` | Listar participantes inscritos | Público com e-mail mascarado |
-| `POST` | `/api/eventos/{id}/inscricoes` | Registrar inscrição | Público |
-| `DELETE` | `/api/inscricoes/{id}` | Cancelar inscrição | Código de cancelamento ou comissão |
+| Método | Rota | Finalidade |
+|---|---|---|
+| `GET` | `/health` | Verificar o funcionamento da aplicação |
+| `GET` | `/api/eventos` | Listar eventos |
+| `POST` | `/api/eventos` | Cadastrar evento |
+| `GET` | `/api/eventos/{id}` | Consultar detalhes |
+| `GET` | `/api/eventos/{id}/inscricoes` | Listar participantes inscritos |
+| `POST` | `/api/eventos/{id}/inscricoes` | Registrar inscrição |
+| `DELETE` | `/api/inscricoes/{id}` | Cancelar inscrição |
 
 Exemplo de corpo JSON para inscrição:
 
@@ -192,14 +184,6 @@ Exemplo de corpo JSON para inscrição:
 ```
 
 Consulte também o [contrato da API](docs/contrato-api.md). **Atenção:** esse documento é uma proposta inicial e ainda menciona Flask; o backend presente no repositório utiliza **Django**.
-
-## 🔒 Segurança das rotas
-
-- **Token da comissão:** cadastrar evento exige `Authorization: Bearer <token>`. O token vem da variável `COMISSAO_TOKEN`; sem ele a rota responde `401` (ou `503` se o servidor não tiver o token configurado).
-- **Proteção contra IDOR:** cada inscrição recebe um `codigo_cancelamento` secreto, devolvido só para quem se inscreveu. Para cancelar é preciso enviar `X-Codigo-Cancelamento`; trocar o ID na URL sem o código devolve `404`.
-- **Privacidade:** a lista pública de inscritos mostra o e-mail mascarado (`m***@exemplo.com`).
-
-Detalhes, como testar e limitações: [docs/seguranca.md](docs/seguranca.md).
 
 ## ☁️ Implantação no Azure
 
@@ -225,7 +209,6 @@ A documentação do projeto registra a publicação da aplicação no **Microsof
 ## 📚 Documentação complementar
 
 - [Contrato da API](docs/contrato-api.md)
-- [Segurança das rotas](docs/seguranca.md)
 - [Planejamento Azure](documentos/planejamento-azure.md)
 - [Decisões técnicas de nuvem](documentos/decisoes-tecnicas-nuvem.md)
 - [Checklist de entrega](documentos/checklist-entrega-nuvem.md)

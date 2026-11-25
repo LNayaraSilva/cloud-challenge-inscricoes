@@ -1,7 +1,6 @@
 from django.utils import timezone
 
 from .models import Inscricao
-from .seguranca import mascarar_email
 
 
 def data_iso(data):
@@ -39,18 +38,13 @@ def evento_para_dict(evento):
     }
 
 
-def inscricao_para_dict(inscricao, email_completo=True):
-    """
-    O codigo de cancelamento NUNCA sai aqui: so na resposta da criacao.
-    email_completo=False mascara o e-mail (lista publica de inscritos).
-    """
-    email = inscricao.participante_email
+def inscricao_para_dict(inscricao):
     return {
         "id": inscricao.id,
         "evento_id": inscricao.evento_id,
         "participante": {
             "nome": inscricao.participante_nome,
-            "email": email if email_completo else mascarar_email(email),
+            "email": inscricao.participante_email,
         },
         "status": inscricao.status,
         "criada_em": data_iso(inscricao.criada_em),
