@@ -14,21 +14,15 @@ Documentar a proposta inicial de comunicação entre frontend, backend Flask e b
 
 ## 3. Endpoints
 
-| Método | Endpoint | Descrição | Acesso |
-|---|---|---|---|
-| GET | `/health` | Verificar se a aplicação está respondendo | Público |
-| POST | `/api/eventos` | Cadastrar evento | **Comissão** (token) |
-| GET | `/api/eventos` | Listar eventos e vagas | Público |
-| GET | `/api/eventos/{id}` | Consultar evento | Público |
-| POST | `/api/eventos/{id}/inscricoes` | Inscrever participante | Público |
-| GET | `/api/eventos/{id}/inscricoes` | Listar inscrições do evento | Público (e-mail mascarado); comissão vê o e-mail completo |
-| DELETE | `/api/inscricoes/{id}` | Cancelar inscrição | Quem se inscreveu (código de cancelamento) ou comissão |
-
-### 3.1 Segurança das rotas
-
-- **Token da comissão:** rotas da comissão exigem o cabeçalho `Authorization: Bearer <token>`. O token fica na variável de ambiente `COMISSAO_TOKEN` (nunca no código). Sem token ou com token errado: `401 NAO_AUTORIZADO`. Se o servidor estiver sem `COMISSAO_TOKEN` configurado, a rota fica bloqueada para todos: `503 SERVICO_INDISPONIVEL`.
-- **Proteção contra IDOR no cancelamento:** a inscrição devolve um `codigo_cancelamento` (UUID) só para quem se inscreveu. Para cancelar, é preciso enviar esse código no cabeçalho `X-Codigo-Cancelamento`. Trocar o ID na URL sem o código certo devolve `404`, a mesma resposta de uma inscrição que não existe.
-- **Privacidade:** a lista pública de inscritos mostra o e-mail mascarado (`m***@exemplo.com`) e nunca devolve o código de cancelamento.
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/health` | Verificar se a aplicação está respondendo |
+| POST | `/api/eventos` | Cadastrar evento |
+| GET | `/api/eventos` | Listar eventos e vagas |
+| GET | `/api/eventos/{id}` | Consultar evento |
+| POST | `/api/eventos/{id}/inscricoes` | Inscrever participante |
+| GET | `/api/eventos/{id}/inscricoes` | Listar inscrições do evento |
+| DELETE | `/api/inscricoes/{id}` | Cancelar inscrição |
 
 ## 4. Cadastro de evento
 
@@ -47,9 +41,7 @@ Corpo da requisição:
 }
 ```
 
-Cabeçalho obrigatório: `Authorization: Bearer <COMISSAO_TOKEN>`
-
-Resposta esperada: `201 Created`, com o evento cadastrado e seu ID. Sem o token: `401`.
+Resposta esperada: `201 Created`, com o evento cadastrado e seu ID.
 
 ## 5. Listagem de eventos
 
@@ -71,17 +63,13 @@ Corpo da requisição:
 }
 ```
 
-Resposta esperada: `201 Created`, com o ID da inscrição, o ID do evento, o participante, o status `confirmada`, a data de criação e o `codigo_cancelamento`. **Guarde esse código:** ele só aparece nesta resposta e é necessário para cancelar.
+Resposta esperada: `201 Created`, com o ID da inscrição, o ID do evento, o participante, o status `confirmada` e a data de criação.
 
 ## 7. Cancelamento
 
 **DELETE `/api/inscricoes/{id}`**
 
-Cabeçalho obrigatório (um dos dois):
-- `X-Codigo-Cancelamento: <codigo_cancelamento recebido na inscrição>`; ou
-- `Authorization: Bearer <COMISSAO_TOKEN>` (a comissão pode cancelar qualquer inscrição).
-
-Resposta esperada: `204 No Content` quando o cancelamento for realizado com sucesso. Sem o código certo: `404 INSCRICAO_NAO_ENCONTRADA` (igual a uma inscrição inexistente).
+Resposta esperada: `204 No Content` quando o cancelamento for realizado com sucesso.
 
 ## 8. Códigos HTTP
 
@@ -91,12 +79,10 @@ Resposta esperada: `204 No Content` quando o cancelamento for realizado com suce
 | 201 | Recurso criado com sucesso |
 | 204 | Cancelamento realizado com sucesso |
 | 400 | Dados inválidos |
-| 401 | Rota da comissão sem token ou com token inválido |
-| 404 | Evento ou inscrição não encontrado (ou cancelamento sem o código certo) |
+| 404 | Evento ou inscrição não encontrado |
 | 409 | Conflito: inscrição duplicada ou vagas esgotadas |
 | 422 | Regra de negócio não atendida, como inscrição em evento passado |
 | 500 | Erro interno do servidor |
-| 503 | Rota da comissão indisponível (`COMISSAO_TOKEN` não configurado no servidor) |
 
 Exemplo de erro:
 ```json

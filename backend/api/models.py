@@ -1,5 +1,3 @@
-import uuid
-
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -70,13 +68,6 @@ class Inscricao(models.Model):
         default=Status.CONFIRMADA,
     )
     criada_em = models.DateTimeField(auto_now_add=True)
-    # Segredo de quem se inscreveu: e devolvido SO na criacao da inscricao e e
-    # exigido para cancelar (protecao contra IDOR). Ver api/seguranca.py.
-    codigo_cancelamento = models.UUIDField(
-        default=uuid.uuid4,
-        unique=True,
-        editable=False,
-    )
 
     class Meta:
         ordering = ["criada_em"]
